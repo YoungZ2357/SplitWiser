@@ -20,8 +20,9 @@ src/
 │   │   └── register/
 │   │       └── page.tsx
 │   │
-│   ├── dashboard/              # Main feature pages after login
-│   │   └── page.tsx
+│   ├── (dashboard)/              # Main feature pages after login
+│   │   └── dashboard
+│   │       └── page.tsx
 │   │
 │   └── api/                    # API routes (Backend)
 │       ├── auth/               # Authentication API routes(example structure)

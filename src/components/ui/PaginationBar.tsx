@@ -1,14 +1,16 @@
 import { COLORS } from "@/lib/colors";
 
+interface PaginationBarProps {
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+}
+
 /**
  * PaginationBar — displays page info and prev/next buttons.
- *
- * Props:
- *   currentPage  — current page number (1-indexed)
- *   totalPages   — total number of pages
- *   onPageChange — callback(newPage)
+ * Returns null if totalPages <= 1.
  */
-export default function PaginationBar({ currentPage, totalPages, onPageChange }) {
+export default function PaginationBar({ currentPage, totalPages, onPageChange }: PaginationBarProps) {
     if (totalPages <= 1) return null;
 
     return (
@@ -20,13 +22,13 @@ export default function PaginationBar({ currentPage, totalPages, onPageChange })
             borderTop: `1px solid ${COLORS.border}`,
             background: COLORS.surfaceAlt,
         }}>
-            <span style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 12.5,
-                color: COLORS.textMuted,
-            }}>
-                Page {currentPage} of {totalPages}
-            </span>
+      <span style={{
+          fontFamily: "'DM Sans', sans-serif",
+          fontSize: 12.5,
+          color: COLORS.textMuted,
+      }}>
+        Page {currentPage} of {totalPages}
+      </span>
             <div style={{ display: "flex", gap: 6 }}>
                 <PageBtn
                     label="Prev"
@@ -43,7 +45,13 @@ export default function PaginationBar({ currentPage, totalPages, onPageChange })
     );
 }
 
-function PageBtn({ label, disabled, onClick }) {
+interface PageBtnProps {
+    label: string;
+    disabled: boolean;
+    onClick: () => void;
+}
+
+function PageBtn({ label, disabled, onClick }: PageBtnProps) {
     return (
         <button
             onClick={onClick}
