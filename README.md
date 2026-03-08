@@ -14,7 +14,7 @@ src/
 │   ├── page.tsx                # Home page
 │   ├── globals.css             # Global styles (Tailwind entry point)
 │   │
-│   ├── auth/                   # Authentication pages
+│   ├── (auth)/                   # Authentication pages
 │   │   ├── login/
 │   │   │   └── page.tsx
 │   │   └── register/
