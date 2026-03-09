@@ -1,58 +1,8 @@
 import { http, HttpResponse } from "msw";
+import { mockBillDetails, mockBillsList } from "@/mocks/mockData";
 
-/* ── Mock data matching PRD API response shapes ── */
+/* ── Mock data for receipt parsing (not shared with browser) ── */
 
-/** GET /api/bills response items (PRD §5.2) */
-const mockBillsList = [
-    { id: "1", title: "Costco Run", date: "2026-03-05", total: 87.43, participant_count: 3, created_at: "2026-03-05T10:00:00Z" },
-    { id: "2", title: "Team Lunch — Shake Shack", date: "2026-03-03", total: 62.18, participant_count: 4, created_at: "2026-03-03T12:30:00Z" },
-    { id: "3", title: "Grocery Split", date: "2026-02-28", total: 134.56, participant_count: 2, created_at: "2026-02-28T09:00:00Z" },
-];
-
-/** GET /api/bills/:id response (PRD §5.2 — BillDetail) */
-const mockBillDetail = {
-    bill: {
-        id: "1",
-        user_id: "user-123",
-        title: "Costco Run",
-        date: "2026-03-05",
-        tax: 8.5,
-        tip: 0,
-        receipt_image_url: null,
-        created_at: "2026-03-05T10:00:00Z",
-        updated_at: "2026-03-05T10:00:00Z",
-    },
-    items: [
-        { id: "item-1", bill_id: "1", name: "Milk", price: 4.99, is_ai_parsed: false, created_at: "2026-03-05T10:00:00Z" },
-        { id: "item-2", bill_id: "1", name: "Protein Bars", price: 12.99, is_ai_parsed: false, created_at: "2026-03-05T10:00:00Z" },
-        { id: "item-3", bill_id: "1", name: "Organic Granola", price: 8.49, is_ai_parsed: false, created_at: "2026-03-05T10:00:00Z" },
-    ],
-    participants: [
-        { id: "p-1", bill_id: "1", name: "Alice", created_at: "2026-03-05T10:00:00Z" },
-        { id: "p-2", bill_id: "1", name: "Bob", created_at: "2026-03-05T10:00:00Z" },
-        { id: "p-3", bill_id: "1", name: "Charlie", created_at: "2026-03-05T10:00:00Z" },
-    ],
-    assignments: [
-        { id: "a-1", bill_item_id: "item-1", participant_id: "p-1" },
-        { id: "a-2", bill_item_id: "item-1", participant_id: "p-2" },
-        { id: "a-3", bill_item_id: "item-1", participant_id: "p-3" },
-        { id: "a-4", bill_item_id: "item-2", participant_id: "p-1" },
-        { id: "a-5", bill_item_id: "item-3", participant_id: "p-2" },
-    ],
-    split: {
-        per_person: [
-            { participant_id: "p-1", participant_name: "Alice", items_subtotal: 14.65, tax_share: 4.7, tip_share: 0, total: 19.35 },
-            { participant_id: "p-2", participant_name: "Bob", items_subtotal: 10.15, tax_share: 3.26, tip_share: 0, total: 13.41 },
-            { participant_id: "p-3", participant_name: "Charlie", items_subtotal: 1.66, tax_share: 0.54, tip_share: 0, total: 2.2 },
-        ],
-        subtotal: 26.47,
-        tax: 8.5,
-        tip: 0,
-        total: 34.97,
-    },
-};
-
-/** POST /api/receipts/parse response (PRD §5.3) */
 const mockParsedReceipt = {
     items: [
         { name: "Whole Milk 1gal", price: 4.99, confidence: "high" as const },
@@ -84,9 +34,9 @@ export const handlers = [
 
     /** GET /api/bills/:id — bill detail (PRD §5.2) */
     http.get("/api/bills/:id", ({ params }) => {
-        const { id } = params;
-        if (id === mockBillDetail.bill.id) {
-            return HttpResponse.json(mockBillDetail);
+        const detail = mockBillDetails.get(params.id as string);
+        if (detail) {
+            return HttpResponse.json(detail);
         }
         return new HttpResponse(null, { status: 404 });
     }),
@@ -94,26 +44,25 @@ export const handlers = [
     /** POST /api/bills — create bill (PRD §5.2) */
     http.post("/api/bills", async ({ request }) => {
         const body = await request.json();
-        // Return a mock BillDetail with generated id
+        const bill1 = mockBillDetails.get("1")!;
         return HttpResponse.json(
-            { ...mockBillDetail, bill: { ...mockBillDetail.bill, id: "new-bill-id", ...(body as object) } },
+            { ...bill1, bill: { ...bill1.bill, id: "new-bill-id", ...(body as object) } },
             { status: 201 },
         );
     }),
 
     /** PUT /api/bills/:id — update bill (PRD §5.2) */
     http.put("/api/bills/:id", async ({ params }) => {
-        const { id } = params;
-        if (id === mockBillDetail.bill.id) {
-            return HttpResponse.json(mockBillDetail);
+        const detail = mockBillDetails.get(params.id as string);
+        if (detail) {
+            return HttpResponse.json(detail);
         }
         return new HttpResponse(null, { status: 404 });
     }),
 
     /** DELETE /api/bills/:id (PRD §5.2) */
     http.delete("/api/bills/:id", ({ params }) => {
-        const { id } = params;
-        if (id === mockBillDetail.bill.id) {
+        if (mockBillDetails.has(params.id as string)) {
             return new HttpResponse(null, { status: 204 });
         }
         return new HttpResponse(null, { status: 404 });
@@ -126,12 +75,12 @@ export const handlers = [
 
     /** GET /api/bills/:id/share — public share (PRD §5.4) */
     http.get("/api/bills/:id/share", ({ params }) => {
-        const { id } = params;
-        if (id === mockBillDetail.bill.id) {
+        const detail = mockBillDetails.get(params.id as string);
+        if (detail) {
             return HttpResponse.json({
-                title: mockBillDetail.bill.title,
-                date: mockBillDetail.bill.date,
-                split: mockBillDetail.split,
+                title: detail.bill.title,
+                date: detail.bill.date,
+                split: detail.split,
             });
         }
         return new HttpResponse(null, { status: 404 });

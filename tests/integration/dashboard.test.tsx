@@ -1,7 +1,13 @@
-import { render, screen } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
 import { http, HttpResponse } from "msw";
 import { server } from "../mocks/server";
+
+/* ── Mock next/navigation ── */
+const mockPush = vi.fn();
+vi.mock("next/navigation", () => ({
+    useRouter: () => ({ push: mockPush }),
+}));
 
 /**
  * Integration test for the Dashboard page.
@@ -52,41 +58,21 @@ describe("Dashboard Page — populated state", () => {
     });
 });
 
-/**
- * TODO: Uncomment when page.tsx fetches from GET /api/bills
- *
- * describe("Dashboard Page — empty state via MSW", () => {
- *   it("shows empty state when API returns no bills", async () => {
- *     server.use(
- *       http.get("/api/bills", () => {
- *         return HttpResponse.json({
- *           bills: [],
- *           pagination: { page: 1, limit: 20, total: 0 },
- *         });
- *       })
- *     );
- *
- *     render(<DashboardPage />);
- *     expect(await screen.findByText("No bills yet")).toBeInTheDocument();
- *     expect(screen.getByText("Create a Bill")).toBeInTheDocument();
- *     expect(screen.getByText("Upload Receipt")).toBeInTheDocument();
- *   });
- *
- *   it("shows bills when API returns data", async () => {
- *     // Uses default handler from handlers.ts
- *     render(<DashboardPage />);
- *     expect(await screen.findByText("Costco Run")).toBeInTheDocument();
- *   });
- *
- *   it("shows error state on API failure", async () => {
- *     server.use(
- *       http.get("/api/bills", () => {
- *         return new HttpResponse(null, { status: 500 });
- *       })
- *     );
- *
- *     render(<DashboardPage />);
- *     // TODO: assert error UI once ErrorMessage component is implemented
- *   });
- * });
- */
+describe("Dashboard Page — navigation", () => {
+    it("navigates to bill detail when a bill row is clicked", () => {
+        mockPush.mockClear();
+        render(<DashboardPage />);
+        // Click the first bill (Costco Run)
+        const costcoRow = screen.getByText("Costco Run");
+        fireEvent.click(costcoRow);
+        expect(mockPush).toHaveBeenCalledWith("/bills/1");
+    });
+
+    it("navigates to correct bill id for each row", () => {
+        mockPush.mockClear();
+        render(<DashboardPage />);
+        const groceryRow = screen.getByText("Grocery Split");
+        fireEvent.click(groceryRow);
+        expect(mockPush).toHaveBeenCalledWith("/bills/3");
+    });
+});

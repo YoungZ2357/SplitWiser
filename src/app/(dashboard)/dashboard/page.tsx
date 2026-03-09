@@ -8,7 +8,7 @@ import type { BillSummary } from "@/components/bill/BillRow";
 import EmptyState from "@/components/ui/EmptyState";
 import PaginationBar from "@/components/ui/PaginationBar";
 import DashboardShell from "@/components/layout/DashboardShell";
-// import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 /* ── Mock data — shaped to match GET /api/bills response (PRD §5.2) ── */
 const MOCK_BILLS: BillSummary[] = [
@@ -24,7 +24,7 @@ const SHOW_EMPTY_STATE = false; // toggle to preview empty state
 const PER_PAGE = 20; // PRD: default 20
 
 export default function DashboardPage() {
-    // const router = useRouter();
+    const router = useRouter();
     const bills: BillSummary[] = SHOW_EMPTY_STATE ? [] : MOCK_BILLS;
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -72,13 +72,13 @@ export default function DashboardPage() {
                             label: "Create a Bill",
                             icon: Icons.plus,
                             primary: true,
-                            onClick: () => {/* router.push("/bills/new") */},
+                            onClick: () => router.push("/bills/new"),
                         },
                         {
                             label: "Upload Receipt",
                             icon: Icons.camera,
                             primary: false,
-                            onClick: () => {/* router.push("/bills/new?mode=upload") */},
+                            onClick: () => router.push("/bills/new?mode=upload"),
                         },
                     ]}
                 />
@@ -116,7 +116,7 @@ export default function DashboardPage() {
                             key={bill.id}
                             bill={bill}
                             showBorder={i < visibleBills.length - 1}
-                            onClick={() => {/* router.push(`/bills/${bill.id}`) */}}
+                            onClick={() => router.push(`/bills/${bill.id}`)}
                         />
                     ))}
 
