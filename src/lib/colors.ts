@@ -14,4 +14,4 @@ export const COLORS = {
     red: "#BE3B3B",
     redLight: "rgba(190,59,59,0.08)",
     blue: "#3B6EBE",
-};
+} as const;

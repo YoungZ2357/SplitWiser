@@ -1,6 +1,7 @@
+import type { ReactNode } from "react";
 import { COLORS } from "@/lib/colors";
 
-export const Icons = {
+export const Icons: Record<string, ReactNode> = {
     logo: (
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
             <rect width="28" height="28" rx="7" fill={COLORS.accent} />

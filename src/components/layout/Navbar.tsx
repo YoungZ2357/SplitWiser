@@ -2,10 +2,15 @@
 
 import { COLORS } from "@/lib/colors";
 import { Icons } from "@/lib/icons";
-// import { usePathname } from "next/navigation";
 // import Link from "next/link";
+// import { usePathname } from "next/navigation";
 
-const NAV_ITEMS = [
+interface NavItem {
+    label: string;
+    href: string;
+}
+
+const NAV_ITEMS: NavItem[] = [
     { label: "Dashboard", href: "/dashboard" },
     { label: "Expenses", href: "/expenses" },
     { label: "History", href: "/history" },

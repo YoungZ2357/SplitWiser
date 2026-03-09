@@ -1,15 +1,24 @@
+import type { ReactNode } from "react";
 import { COLORS } from "@/lib/colors";
+
+interface EmptyStateAction {
+    label: string;
+    icon?: ReactNode;
+    primary?: boolean;
+    onClick?: () => void;
+}
+
+interface EmptyStateProps {
+    icon?: ReactNode;
+    title: string;
+    description: string;
+    actions?: EmptyStateAction[];
+}
 
 /**
  * EmptyState — reusable empty state with icon, title, description, and action buttons.
- *
- * Props:
- *   icon      — React node (SVG icon)
- *   title     — heading text
- *   description — body text
- *   actions   — array of { label, icon, primary, onClick }
  */
-export default function EmptyState({ icon, title, description, actions = [] }) {
+export default function EmptyState({ icon, title, description, actions = [] }: EmptyStateProps) {
     return (
         <div style={{
             background: COLORS.surface,
