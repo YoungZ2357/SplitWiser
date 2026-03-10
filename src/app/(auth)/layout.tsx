@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { COLORS } from "@/lib/colors";
 
 interface AuthLayoutProps {
     children: ReactNode;
@@ -11,22 +10,8 @@ interface AuthLayoutProps {
  */
 export default function AuthLayout({ children }: AuthLayoutProps) {
     return (
-        <div style={{
-            minHeight: "100vh",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: COLORS.bg,
-            padding: 24,
-        }}>
-            <div style={{
-                width: "100%",
-                maxWidth: 420,
-                background: COLORS.surface,
-                borderRadius: 16,
-                border: `1px solid ${COLORS.border}`,
-                padding: "40px 32px",
-            }}>
+        <div className="min-h-screen flex items-center justify-center bg-bg p-6">
+            <div className="w-full max-w-[420px] bg-surface rounded-2xl border border-border px-8 py-10">
                 {children}
             </div>
         </div>

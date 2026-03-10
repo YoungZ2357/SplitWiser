@@ -1,8 +1,7 @@
-// TODO: migrate to Tailwind
 "use client";
 
 import { useState } from "react";
-import { COLORS } from "@/lib/colors";
+import { cn } from "@/lib/cn";
 import { formatCurrency } from "@/lib/format";
 import { Avatar } from "@/components/ui/Avatar";
 import type { BillItem, Participant, ItemAssignment, SplitResult } from "@/types";
@@ -58,51 +57,25 @@ export default function SplitSummary({ split, items, participants, assignments }
                 return (
                     <div
                         key={person.participant_id}
-                        style={{
-                            background: COLORS.surface,
-                            border: `1px solid ${COLORS.border}`,
-                            borderRadius: 10,
-                            marginBottom: 10,
-                            overflow: "hidden",
-                            transition: "box-shadow 0.15s",
-                        }}
+                        className="bg-surface border border-border rounded-[10px] mb-2.5 overflow-hidden transition-shadow duration-150"
                     >
                         {/* Person header */}
                         <div
                             onClick={() => setExpandedPerson(isExpanded ? null : person.participant_id)}
-                            style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                padding: "14px 18px",
-                                cursor: "pointer",
-                                userSelect: "none",
-                            }}
+                            className="flex items-center justify-between px-[18px] py-3.5 cursor-pointer select-none"
                             data-testid={`person-header-${person.participant_id}`}
                         >
-                            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                            <div className="flex items-center gap-3">
                                 <Avatar name={person.participant_name} colorIndex={participantMap[person.participant_id]} />
-                                <span style={{ fontWeight: 500, fontSize: 15 }}>{person.participant_name}</span>
+                                <span className="font-medium text-[15px]">{person.participant_name}</span>
                             </div>
-                            <div style={{ display: "flex", alignItems: "center" }}>
-                                <span
-                                    style={{
-                                        fontSize: 17,
-                                        fontWeight: 600,
-                                        fontVariantNumeric: "tabular-nums",
-                                    }}
-                                >
+                            <div className="flex items-center">
+                                <span className="text-[17px] font-semibold tabular-nums">
                                     {formatCurrency(person.total)}
                                 </span>
                                 <span
-                                    style={{
-                                        fontSize: 18,
-                                        color: COLORS.textMuted,
-                                        transition: "transform 0.2s",
-                                        marginLeft: 8,
-                                        display: "inline-flex",
-                                        transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
-                                    }}
+                                    className="text-lg text-text-muted ml-2 inline-flex transition-transform duration-200"
+                                    style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)" }}
                                 >
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <polyline points="6 9 12 15 18 9" />
@@ -114,62 +87,37 @@ export default function SplitSummary({ split, items, participants, assignments }
                         {/* Expanded detail */}
                         {isExpanded && (
                             <div
-                                style={{
-                                    borderTop: `1px solid ${COLORS.border}`,
-                                    padding: "14px 18px",
-                                    background: COLORS.bg,
-                                }}
+                                className="border-t border-border px-[18px] py-3.5 bg-bg"
                                 data-testid={`person-detail-${person.participant_id}`}
                             >
                                 {personItems.map((item) => (
                                     <div
                                         key={item.id}
-                                        style={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                            alignItems: "center",
-                                            padding: "6px 0",
-                                            fontSize: 13,
-                                        }}
+                                        className="flex justify-between items-center py-1.5 text-[13px]"
                                     >
                                         <div>
-                                            <span style={{ color: COLORS.text }}>{item.name}</span>
+                                            <span className="text-text">{item.name}</span>
                                             {item.sharedWith > 1 && (
-                                                <span
-                                                    style={{
-                                                        fontSize: 11,
-                                                        color: COLORS.textMuted,
-                                                        background: COLORS.surfaceAlt,
-                                                        padding: "1px 6px",
-                                                        borderRadius: 4,
-                                                        marginLeft: 8,
-                                                    }}
-                                                >
+                                                <span className="text-[11px] text-text-muted bg-surface-alt px-1.5 py-px rounded ml-2">
                                                     ÷{item.sharedWith}
                                                 </span>
                                             )}
                                         </div>
-                                        <span style={{ fontVariantNumeric: "tabular-nums", fontWeight: 500 }}>
+                                        <span className="tabular-nums font-medium">
                                             {formatCurrency(item.sharePrice)}
                                         </span>
                                     </div>
                                 ))}
-                                <hr
-                                    style={{
-                                        border: "none",
-                                        borderTop: `1px dashed ${COLORS.border}`,
-                                        margin: "8px 0",
-                                    }}
-                                />
-                                <div style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: 12, color: COLORS.textMuted }}>
+                                <hr className="border-none border-t border-dashed border-border my-2" />
+                                <div className="flex justify-between py-[3px] text-xs text-text-muted">
                                     <span>Items subtotal</span>
                                     <span>{formatCurrency(person.items_subtotal)}</span>
                                 </div>
-                                <div style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: 12, color: COLORS.textMuted }}>
+                                <div className="flex justify-between py-[3px] text-xs text-text-muted">
                                     <span>Tax share</span>
                                     <span>{formatCurrency(person.tax_share)}</span>
                                 </div>
-                                <div style={{ display: "flex", justifyContent: "space-between", padding: "3px 0", fontSize: 12, color: COLORS.textMuted }}>
+                                <div className="flex justify-between py-[3px] text-xs text-text-muted">
                                     <span>Tip share</span>
                                     <span>{formatCurrency(person.tip_share)}</span>
                                 </div>

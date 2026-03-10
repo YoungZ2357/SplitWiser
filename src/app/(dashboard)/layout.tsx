@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { COLORS } from "@/lib/colors";
 
 interface DashboardRouteLayoutProps {
     children: ReactNode;
@@ -19,12 +18,7 @@ interface DashboardRouteLayoutProps {
  */
 export default function DashboardRouteLayout({ children }: DashboardRouteLayoutProps) {
     return (
-        <div style={{
-            minHeight: "100vh",
-            background: COLORS.bg,
-            fontFamily: "'Source Serif 4', 'Georgia', serif",
-            color: COLORS.text,
-        }}>
+        <div className="min-h-screen bg-bg font-serif text-text">
             {/*
         TODO: move font loading to src/app/layout.tsx using next/font:
         import { Source_Serif_4, DM_Sans } from 'next/font/google';
@@ -37,9 +31,6 @@ export default function DashboardRouteLayout({ children }: DashboardRouteLayoutP
             {children}
 
             <style>{`
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        button:hover { opacity: 0.88; }
-        button:active { transform: scale(0.98); }
         ::selection { background: rgba(192,86,33,0.15); }
       `}</style>
         </div>

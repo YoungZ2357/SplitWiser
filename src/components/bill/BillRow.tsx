@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { COLORS } from "@/lib/colors";
+import { cn } from "@/lib/cn";
 import { Icons } from "@/lib/icons";
 import { formatCurrency, formatDateShort } from "@/lib/format";
 
@@ -31,77 +31,36 @@ export default function BillRow({ bill, showBorder = true, onClick }: BillRowPro
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
             onClick={onClick}
-            style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 120px 100px 100px",
-                alignItems: "center",
-                padding: "14px 24px",
-                borderBottom: showBorder ? `1px solid ${COLORS.border}` : "none",
-                background: hovered ? COLORS.surfaceAlt : "transparent",
-                cursor: "pointer",
-                transition: "background 0.12s ease",
-            }}
+            className={cn(
+                "grid grid-cols-[1fr_120px_100px_100px] items-center px-6 py-3.5 cursor-pointer transition-[background] duration-[120ms]",
+                showBorder && "border-b border-border",
+                hovered ? "bg-surface-alt" : "bg-transparent"
+            )}
         >
             {/* Title + Icon */}
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{
-                    width: 36, height: 36, borderRadius: 9,
-                    background: COLORS.accentLight,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    color: COLORS.accent, flexShrink: 0,
-                }}>
+            <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-[9px] bg-accent-light flex items-center justify-center text-accent shrink-0">
                     {Icons.receipt}
                 </div>
-                <span style={{
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: COLORS.text,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                }}>
-          {bill.title}
-        </span>
+                <span className="font-sans text-sm font-semibold text-text truncate">
+                    {bill.title}
+                </span>
             </div>
 
             {/* Date */}
-            <span style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 13,
-                color: COLORS.textMuted,
-                display: "flex",
-                alignItems: "center",
-                gap: 5,
-            }}>
-        {Icons.calendar} {formatDateShort(bill.date)}
-      </span>
+            <span className="font-sans text-[13px] text-text-muted flex items-center gap-[5px]">
+                {Icons.calendar} {formatDateShort(bill.date)}
+            </span>
 
             {/* Participants */}
-            <span style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 13,
-                color: COLORS.textMuted,
-                textAlign: "right",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "flex-end",
-                gap: 5,
-            }}>
-        {Icons.users} {bill.participant_count}
-      </span>
+            <span className="font-sans text-[13px] text-text-muted text-right flex items-center justify-end gap-[5px]">
+                {Icons.users} {bill.participant_count}
+            </span>
 
             {/* Total */}
-            <span style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 14.5,
-                fontWeight: 700,
-                color: COLORS.text,
-                textAlign: "right",
-                letterSpacing: "-0.01em",
-            }}>
-        {formatCurrency(bill.total)}
-      </span>
+            <span className="font-sans text-[14.5px] font-bold text-text text-right tracking-tight">
+                {formatCurrency(bill.total)}
+            </span>
         </div>
     );
 }

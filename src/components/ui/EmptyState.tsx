@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { COLORS } from "@/lib/colors";
+import { cn } from "@/lib/cn";
 
 interface EmptyStateAction {
     label: string;
@@ -20,60 +20,30 @@ interface EmptyStateProps {
  */
 export default function EmptyState({ icon, title, description, actions = [] }: EmptyStateProps) {
     return (
-        <div style={{
-            background: COLORS.surface,
-            borderRadius: 16,
-            border: `1px solid ${COLORS.border}`,
-            padding: "64px 32px",
-            textAlign: "center",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 16,
-        }}>
-            {icon && <div style={{ marginBottom: 4 }}>{icon}</div>}
+        <div className="bg-surface rounded-2xl border border-border px-8 py-16 text-center flex flex-col items-center gap-4">
+            {icon && <div className="mb-1">{icon}</div>}
 
             <div>
-                <h2 style={{
-                    fontFamily: "'Source Serif 4', Georgia, serif",
-                    fontSize: 20,
-                    fontWeight: 600,
-                    margin: "0 0 6px",
-                    letterSpacing: "-0.01em",
-                    color: COLORS.text,
-                }}>{title}</h2>
-                <p style={{
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontSize: 14,
-                    color: COLORS.textMuted,
-                    margin: 0,
-                    maxWidth: 320,
-                    lineHeight: 1.5,
-                }}>{description}</p>
+                <h2 className="font-serif text-xl font-semibold mb-1.5 tracking-tight text-text">
+                    {title}
+                </h2>
+                <p className="font-sans text-sm text-text-muted m-0 max-w-[320px] leading-normal">
+                    {description}
+                </p>
             </div>
 
             {actions.length > 0 && (
-                <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+                <div className="flex gap-2.5 mt-2">
                     {actions.map((action) => (
                         <button
                             key={action.label}
                             onClick={action.onClick}
-                            style={{
-                                fontFamily: "'DM Sans', sans-serif",
-                                fontSize: 14,
-                                fontWeight: 600,
-                                color: action.primary ? COLORS.surface : COLORS.accent,
-                                background: action.primary ? COLORS.accent : COLORS.accentLight,
-                                border: action.primary ? "none" : `1px solid rgba(192,86,33,0.15)`,
-                                borderRadius: 10,
-                                padding: "12px 24px",
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 7,
-                                boxShadow: action.primary ? "0 2px 6px rgba(192,86,33,0.2)" : "none",
-                                transition: "all 0.15s ease",
-                            }}
+                            className={cn(
+                                "font-sans text-sm font-semibold rounded-[10px] px-6 py-3 cursor-pointer flex items-center gap-[7px] transition-all duration-150",
+                                action.primary
+                                    ? "text-surface bg-accent border-none shadow-accent"
+                                    : "text-accent bg-accent-light border border-accent/15"
+                            )}
                         >
                             {action.icon} {action.label}
                         </button>

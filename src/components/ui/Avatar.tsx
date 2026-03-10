@@ -1,4 +1,3 @@
-// TODO: migrate to Tailwind
 "use client";
 
 import type { Participant } from "@/types";
@@ -15,19 +14,13 @@ export function Avatar({ name, colorIndex, size = 32 }: AvatarProps) {
     const color = AVATAR_COLORS[colorIndex % AVATAR_COLORS.length];
     return (
         <div
+            className="rounded-full flex items-center justify-center font-semibold tracking-tight shrink-0"
             style={{
                 width: size,
                 height: size,
-                borderRadius: "50%",
                 background: color,
                 color: "#fff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
                 fontSize: size * 0.42,
-                fontWeight: 600,
-                letterSpacing: "-0.02em",
-                flexShrink: 0,
             }}
             title={name}
         >
@@ -44,7 +37,7 @@ interface AvatarStackProps {
 
 export function AvatarStack({ participants, participantMap, size = 22 }: AvatarStackProps) {
     return (
-        <div style={{ display: "flex", alignItems: "center" }}>
+        <div className="flex items-center">
             {participants.map((p, i) => (
                 <div
                     key={p.id}

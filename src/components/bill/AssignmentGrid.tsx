@@ -1,7 +1,6 @@
-// TODO: migrate to Tailwind
 "use client";
 
-import { COLORS } from "@/lib/colors";
+import { cn } from "@/lib/cn";
 import { Avatar } from "@/components/ui/Avatar";
 import type { BillItem, Participant, ItemAssignment } from "@/types";
 
@@ -16,49 +15,19 @@ export default function AssignmentGrid({ items, participants, assignments }: Ass
     participants.forEach((p, i) => (participantMap[p.id] = i));
 
     return (
-        <div
-            style={{
-                background: COLORS.surface,
-                border: `1px solid ${COLORS.border}`,
-                borderRadius: 10,
-                padding: 18,
-                overflowX: "auto",
-            }}
-        >
-            <table
-                style={{
-                    width: "100%",
-                    borderCollapse: "collapse",
-                    fontSize: 13,
-                }}
-            >
+        <div className="bg-surface border border-border rounded-[10px] p-[18px] overflow-x-auto">
+            <table className="w-full border-collapse text-[13px]">
                 <thead>
                     <tr>
-                        <th
-                            style={{
-                                textAlign: "left",
-                                padding: "8px 6px",
-                                fontWeight: 500,
-                                fontSize: 12,
-                                color: COLORS.textMuted,
-                                borderBottom: `1px solid ${COLORS.border}`,
-                            }}
-                        >
+                        <th className="text-left px-1.5 py-2 font-medium text-xs text-text-muted border-b border-border">
                             Item
                         </th>
                         {participants.map((p) => (
                             <th
                                 key={p.id}
-                                style={{
-                                    textAlign: "center",
-                                    padding: "8px 6px",
-                                    fontWeight: 500,
-                                    fontSize: 12,
-                                    color: COLORS.textMuted,
-                                    borderBottom: `1px solid ${COLORS.border}`,
-                                }}
+                                className="text-center px-1.5 py-2 font-medium text-xs text-text-muted border-b border-border"
                             >
-                                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                                <div className="flex flex-col items-center gap-1">
                                     <Avatar name={p.name} colorIndex={participantMap[p.id]} size={24} />
                                     <span>{p.name}</span>
                                 </div>
@@ -70,16 +39,10 @@ export default function AssignmentGrid({ items, participants, assignments }: Ass
                     {items.map((item, rowIdx) => (
                         <tr key={item.id}>
                             <td
-                                style={{
-                                    textAlign: "left",
-                                    fontWeight: 500,
-                                    padding: "10px 6px",
-                                    borderBottom: rowIdx < items.length - 1 ? `1px solid ${COLORS.border}` : "none",
-                                    maxWidth: 180,
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                }}
+                                className={cn(
+                                    "text-left font-medium px-1.5 py-2.5 max-w-[180px] truncate",
+                                    rowIdx < items.length - 1 && "border-b border-border"
+                                )}
                             >
                                 {item.name}
                             </td>
@@ -90,24 +53,18 @@ export default function AssignmentGrid({ items, participants, assignments }: Ass
                                 return (
                                     <td
                                         key={p.id}
-                                        style={{
-                                            textAlign: "center",
-                                            padding: "10px 6px",
-                                            borderBottom: rowIdx < items.length - 1 ? `1px solid ${COLORS.border}` : "none",
-                                        }}
+                                        className={cn(
+                                            "text-center px-1.5 py-2.5",
+                                            rowIdx < items.length - 1 && "border-b border-border"
+                                        )}
                                     >
                                         <span
-                                            style={{
-                                                width: 20,
-                                                height: 20,
-                                                borderRadius: "50%",
-                                                display: "inline-flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                fontSize: 12,
-                                                background: assigned ? COLORS.accentLight : COLORS.surfaceAlt,
-                                                color: assigned ? COLORS.accent : COLORS.border,
-                                            }}
+                                            className={cn(
+                                                "w-5 h-5 rounded-full inline-flex items-center justify-center text-xs",
+                                                assigned
+                                                    ? "bg-accent-light text-accent"
+                                                    : "bg-surface-alt text-border"
+                                            )}
                                         >
                                             {assigned ? "✓" : "–"}
                                         </span>

@@ -1,7 +1,6 @@
-// TODO: migrate to Tailwind
 "use client";
 
-import { COLORS } from "@/lib/colors";
+import { cn } from "@/lib/cn";
 import { formatCurrency } from "@/lib/format";
 import { AvatarStack } from "@/components/ui/Avatar";
 import type { BillItem, Participant, ItemAssignment } from "@/types";
@@ -28,77 +27,32 @@ export default function ItemList({ items, participants, assignments }: ItemListP
     participants.forEach((p, i) => (participantMap[p.id] = i));
 
     return (
-        <div
-            style={{
-                background: COLORS.surface,
-                border: `1px solid ${COLORS.border}`,
-                borderRadius: 10,
-                overflow: "hidden",
-            }}
-        >
+        <div className="bg-surface border border-border rounded-[10px] overflow-hidden">
             {items.map((item, idx) => {
                 const assignees = getItemAssignees(item.id, assignments, participants);
                 return (
                     <div
                         key={item.id}
-                        style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            padding: "12px 18px",
-                            borderBottom: idx < items.length - 1 ? `1px solid ${COLORS.border}` : "none",
-                            gap: 12,
-                        }}
+                        className={cn(
+                            "flex items-center justify-between px-[18px] py-3 gap-3",
+                            idx < items.length - 1 && "border-b border-border"
+                        )}
                     >
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                            <div
-                                style={{
-                                    fontSize: 14,
-                                    fontWeight: 500,
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                }}
-                            >
+                        <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium truncate">
                                 {item.name}
                             </div>
-                            <div
-                                style={{
-                                    fontSize: 12,
-                                    color: COLORS.textMuted,
-                                    marginTop: 2,
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 6,
-                                }}
-                            >
+                            <div className="text-xs text-text-muted mt-0.5 flex items-center gap-1.5">
                                 <AvatarStack participants={assignees} participantMap={participantMap} size={18} />
                                 <span>{assignees.map((a) => a.name).join(", ")}</span>
                                 {item.is_ai_parsed && (
-                                    <span
-                                        style={{
-                                            fontSize: 10,
-                                            fontWeight: 600,
-                                            color: COLORS.blue,
-                                            background: "rgba(59,110,190,0.08)",
-                                            padding: "1px 5px",
-                                            borderRadius: 3,
-                                            letterSpacing: "0.03em",
-                                        }}
-                                    >
+                                    <span className="text-[10px] font-semibold text-blue bg-[rgba(59,110,190,0.08)] px-[5px] py-px rounded-[3px] tracking-wide">
                                         AI
                                     </span>
                                 )}
                             </div>
                         </div>
-                        <span
-                            style={{
-                                fontSize: 14,
-                                fontWeight: 600,
-                                fontVariantNumeric: "tabular-nums",
-                                flexShrink: 0,
-                            }}
-                        >
+                        <span className="text-sm font-semibold tabular-nums shrink-0">
                             {formatCurrency(item.price)}
                         </span>
                     </div>

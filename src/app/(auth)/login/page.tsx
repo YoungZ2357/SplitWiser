@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { COLORS } from "@/lib/colors";
+import { cn } from "@/lib/cn";
 import { createClient } from "@/lib/supabase/client";
 
 /** Simple email format check. */
@@ -53,47 +53,24 @@ export default function LoginPage() {
         }
     }
 
+    const labelCls = "block font-sans text-[13px] font-semibold text-text mb-1.5";
+    const inputCls = "w-full px-3 py-2.5 font-sans text-sm rounded-lg border border-border outline-none bg-surface text-text box-border";
+
     return (
         <>
             {/* Brand */}
-            <h1 style={{
-                fontFamily: "'Source Serif 4', Georgia, serif",
-                fontSize: 28,
-                fontWeight: 700,
-                color: COLORS.accent,
-                letterSpacing: "-0.02em",
-                margin: "0 0 4px",
-                textAlign: "center",
-            }}>
+            <h1 className="font-serif text-[28px] font-bold text-accent tracking-tight text-center mb-1">
                 SplitWiser
             </h1>
-            <p style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 14,
-                color: COLORS.textMuted,
-                textAlign: "center",
-                margin: "0 0 32px",
-            }}>
+            <p className="font-sans text-sm text-text-muted text-center mb-8">
                 Log in to your account
             </p>
 
             {/* Form */}
             <form onSubmit={handleSubmit} noValidate>
                 {/* Email */}
-                <div style={{ marginBottom: 20 }}>
-                    <label
-                        htmlFor="login-email"
-                        style={{
-                            display: "block",
-                            fontFamily: "'DM Sans', sans-serif",
-                            fontSize: 13,
-                            fontWeight: 600,
-                            color: COLORS.text,
-                            marginBottom: 6,
-                        }}
-                    >
-                        Email
-                    </label>
+                <div className="mb-5">
+                    <label htmlFor="login-email" className={labelCls}>Email</label>
                     <input
                         id="login-email"
                         type="email"
@@ -101,36 +78,13 @@ export default function LoginPage() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="you@example.com"
-                        style={{
-                            width: "100%",
-                            padding: "10px 12px",
-                            fontFamily: "'DM Sans', sans-serif",
-                            fontSize: 14,
-                            borderRadius: 8,
-                            border: `1px solid ${COLORS.border}`,
-                            outline: "none",
-                            background: COLORS.surface,
-                            color: COLORS.text,
-                            boxSizing: "border-box",
-                        }}
+                        className={inputCls}
                     />
                 </div>
 
                 {/* Password */}
-                <div style={{ marginBottom: 24 }}>
-                    <label
-                        htmlFor="login-password"
-                        style={{
-                            display: "block",
-                            fontFamily: "'DM Sans', sans-serif",
-                            fontSize: 13,
-                            fontWeight: 600,
-                            color: COLORS.text,
-                            marginBottom: 6,
-                        }}
-                    >
-                        Password
-                    </label>
+                <div className="mb-6">
+                    <label htmlFor="login-password" className={labelCls}>Password</label>
                     <input
                         id="login-password"
                         type="password"
@@ -138,32 +92,13 @@ export default function LoginPage() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="••••••••"
-                        style={{
-                            width: "100%",
-                            padding: "10px 12px",
-                            fontFamily: "'DM Sans', sans-serif",
-                            fontSize: 14,
-                            borderRadius: 8,
-                            border: `1px solid ${COLORS.border}`,
-                            outline: "none",
-                            background: COLORS.surface,
-                            color: COLORS.text,
-                            boxSizing: "border-box",
-                        }}
+                        className={inputCls}
                     />
                 </div>
 
                 {/* Error */}
                 {error && (
-                    <p
-                        role="alert"
-                        style={{
-                            fontFamily: "'DM Sans', sans-serif",
-                            fontSize: 13,
-                            color: COLORS.red,
-                            margin: "0 0 16px",
-                        }}
-                    >
+                    <p role="alert" className="font-sans text-[13px] text-red mb-4">
                         {error}
                     </p>
                 )}
@@ -172,40 +107,21 @@ export default function LoginPage() {
                 <button
                     type="submit"
                     disabled={loading}
-                    style={{
-                        width: "100%",
-                        padding: "12px 0",
-                        fontFamily: "'DM Sans', sans-serif",
-                        fontSize: 15,
-                        fontWeight: 600,
-                        color: "#FFFFFF",
-                        background: loading ? COLORS.textMuted : COLORS.accent,
-                        border: "none",
-                        borderRadius: 10,
-                        cursor: loading ? "not-allowed" : "pointer",
-                    }}
+                    className={cn(
+                        "w-full py-3 font-sans text-[15px] font-semibold text-white border-none rounded-[10px]",
+                        loading
+                            ? "bg-text-muted cursor-not-allowed"
+                            : "bg-accent cursor-pointer"
+                    )}
                 >
                     {loading ? "Logging in…" : "Log In"}
                 </button>
             </form>
 
             {/* Footer */}
-            <p style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 13.5,
-                color: COLORS.textMuted,
-                textAlign: "center",
-                marginTop: 24,
-            }}>
+            <p className="font-sans text-[13.5px] text-text-muted text-center mt-6">
                 Don&apos;t have an account?{" "}
-                <a
-                    href="/signup"
-                    style={{
-                        color: COLORS.accent,
-                        fontWeight: 600,
-                        textDecoration: "none",
-                    }}
-                >
+                <a href="/signup" className="text-accent font-semibold no-underline">
                     Sign up
                 </a>
             </p>

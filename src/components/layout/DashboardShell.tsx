@@ -29,11 +29,7 @@ export default function DashboardShell({ children, maxWidth = 720 }: DashboardSh
         <>
             <Navbar />
 
-            <main style={{
-                maxWidth,
-                margin: "0 auto",
-                padding: "32px 24px 64px",
-            }}>
+            <main className="w-full mx-auto pt-8 px-6 pb-16" style={{ maxWidth }}>
                 {children}
             </main>
 
