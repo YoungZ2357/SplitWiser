@@ -121,6 +121,17 @@ export default function ReceiptUpload({
                     className="hidden"
                     data-testid="receipt-file-input"
                 />
+
+                {/* API or validation error shown next to preview */}
+                {displayError && (
+                    <div
+                        role="alert"
+                        className="px-3 py-2 rounded-lg bg-red-light text-red font-sans text-xs w-full text-center"
+                        data-testid="receipt-upload-error"
+                    >
+                        {displayError}
+                    </div>
+                )}
             </div>
         );
     }

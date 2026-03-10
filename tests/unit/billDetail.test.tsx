@@ -9,6 +9,7 @@ const mockId = "1"; // matches mockBillDetail in handlers.ts
 vi.mock("next/navigation", () => ({
     useRouter: () => ({ push: mockPush }),
     useParams: () => ({ id: mockId }),
+    usePathname: () => `/bills/${mockId}`,
 }));
 
 /* ── Mock clipboard ── */

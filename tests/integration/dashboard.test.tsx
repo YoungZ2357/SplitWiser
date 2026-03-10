@@ -7,6 +7,7 @@ import { server } from "../mocks/server";
 const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({
     useRouter: () => ({ push: mockPush }),
+    usePathname: () => "/dashboard",
 }));
 
 /**
