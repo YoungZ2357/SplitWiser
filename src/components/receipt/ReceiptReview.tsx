@@ -64,6 +64,10 @@ export default function ReceiptReview({
         ]);
     };
 
+    const removeAllItems = () => {
+        setItems([]);
+    };
+
     const subtotal = items.reduce((s, i) => s + i.price, 0);
 
     const lowConfidenceCount = items.filter(
@@ -203,9 +207,20 @@ export default function ReceiptReview({
 
                     {/* Subtotal */}
                     <div className="flex justify-between px-3.5 py-2 font-sans text-sm">
-                        <span className="text-text-muted">
-                            {items.length} item{items.length !== 1 ? "s" : ""}
-                        </span>
+                        <div className="flex items-center gap-2">
+                            <span className="text-text-muted">
+                                {items.length} item{items.length !== 1 ? "s" : ""}
+                            </span>
+                            {items.length > 0 && (
+                                <button
+                                    onClick={removeAllItems}
+                                    data-testid="review-clear-all-button"
+                                    className="text-[11px] font-semibold tracking-wide text-red/80 hover:text-red transition-colors bg-transparent border-none cursor-pointer p-0"
+                                >
+                                    CLEAR ALL
+                                </button>
+                            )}
+                        </div>
                         <span className="font-semibold text-text">
                             Subtotal: {formatCurrency(subtotal)}
                         </span>
