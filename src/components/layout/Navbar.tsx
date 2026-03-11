@@ -2,8 +2,7 @@
 
 import { COLORS } from "@/lib/colors";
 import { Icons } from "@/lib/icons";
-// import Link from "next/link";
-// import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 interface NavItem {
     label: string;
@@ -17,6 +16,7 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 export default function Navbar() {
+    const router = useRouter();
     // TODO: replace with usePathname() when integrated into Next.js
     // const pathname = usePathname();
     const pathname = "/dashboard";
@@ -78,42 +78,44 @@ export default function Navbar() {
 
             {/* Right: Quick actions + Profile */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                {/* TODO: wrap with <Link href="/bills/new"> */}
-                <button style={{
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    color: COLORS.surface,
-                    background: COLORS.accent,
-                    border: "none",
-                    borderRadius: 8,
-                    padding: "8px 16px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    boxShadow: "0 1px 3px rgba(192,86,33,0.25)",
-                    transition: "all 0.15s ease",
-                }}>
+                <button
+                    onClick={() => router.push("/bills/new")}
+                    style={{
+                        fontFamily: "'DM Sans', sans-serif",
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: COLORS.surface,
+                        background: COLORS.accent,
+                        border: "none",
+                        borderRadius: 8,
+                        padding: "8px 16px",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        boxShadow: "0 1px 3px rgba(192,86,33,0.25)",
+                        transition: "all 0.15s ease",
+                    }}>
                     {Icons.plus}<span>New Bill</span>
                 </button>
 
-                {/* TODO: wrap with <Link href="/bills/new?mode=upload"> */}
-                <button style={{
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontSize: 13,
-                    fontWeight: 500,
-                    color: COLORS.accent,
-                    background: COLORS.accentLight,
-                    border: `1px solid rgba(192,86,33,0.15)`,
-                    borderRadius: 8,
-                    padding: "8px 14px",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    transition: "all 0.15s ease",
-                }}>
+                <button
+                    onClick={() => router.push("/bills/new?mode=upload")}
+                    style={{
+                        fontFamily: "'DM Sans', sans-serif",
+                        fontSize: 13,
+                        fontWeight: 500,
+                        color: COLORS.accent,
+                        background: COLORS.accentLight,
+                        border: `1px solid rgba(192,86,33,0.15)`,
+                        borderRadius: 8,
+                        padding: "8px 14px",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        transition: "all 0.15s ease",
+                    }}>
                     {Icons.camera}<span>Upload Receipt</span>
                 </button>
 
