@@ -35,16 +35,24 @@ export const handlers = [
         return new HttpResponse(null, { status: 404 });
     }),
 
+    /** POST /api/bills — create a new bill */
+    http.post("/api/bills", () => {
+        return HttpResponse.json({
+            id: "new-bill-id",
+            title: "Mocked New Bill",
+            date: "2024-03-10",
+        }, { status: 201 });
+    }),
+
     /** POST /api/receipts/parse — mock receipt parsing (PRD §5.3) */
     http.post("/api/receipts/parse", async ({ request }) => {
-        // Simulate Gemini processing time
-        await delay(1500);
+        // Simulate Gemini processing time removed for speed
 
         // Validate that an image was provided
         const formData = await request.formData();
         const image = formData.get("image");
 
-        if (!image || !(image instanceof File)) {
+        if (!image || (typeof image === "object" && !("name" in image))) {
             return HttpResponse.json(
                 { error: "No image provided" },
                 { status: 400 }

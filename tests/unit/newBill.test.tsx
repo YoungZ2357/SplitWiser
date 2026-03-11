@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { http, HttpResponse } from "msw";
 import { server } from "../mocks/server";
@@ -8,6 +9,7 @@ const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({
     useRouter: () => ({ push: mockPush }),
     useParams: () => ({}),
+    usePathname: () => "/bills/new",
 }));
 
 /* ── Mock window.confirm ── */
@@ -58,7 +60,7 @@ describe("New Bill Page", () => {
 
     it("renders page header 'New Bill'", () => {
         render(<NewBillPage />);
-        expect(screen.getByText("New Bill")).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "New Bill" })).toBeInTheDocument();
     });
 
     it("renders all 5 accordion section headers", () => {
@@ -134,6 +136,112 @@ describe("New Bill Page", () => {
 
         expect(taxInput).toHaveValue(2.5);
         expect(tipInput).toHaveValue(4);
+    });
+
+    // ── Receipt Review flow Layout verification ──
+
+    it("manual input mode does NOT show receipt image", () => {
+        render(<NewBillPage />);
+        fireEvent.click(screen.getByTestId("input-method-manual"));
+        fireEvent.click(screen.getByTestId("add-item-button"));
+        expect(screen.queryByTestId("receipt-review-image")).not.toBeInTheDocument();
+    });
+
+    it("receipt review renders grid layout with image and items", async () => {
+        // Setup MSW to return parsed items
+        server.use(
+            http.post("/api/receipts/parse", () => {
+                return HttpResponse.json({
+                    items: [{ name: "Salad", price: 15.00, confidence: "high" }],
+                    receipt_image_url: "fake_url.jpg"
+                });
+            })
+        );
+
+        render(<NewBillPage />);
+        fireEvent.click(screen.getByTestId("input-method-receipt"));
+
+        // upload mock file
+        const uploader = screen.getByTestId("receipt-file-input");
+        const file = new File(["dummy content"], "receipt.png", { type: "image/png" });
+        Object.defineProperty(uploader, "files", { value: [file] });
+        fireEvent.change(uploader);
+
+        // Scan the receipt
+        fireEvent.click(screen.getByTestId("scan-receipt-button"));
+
+        // Confirm the parsed items
+        const confirmBtn = await screen.findByTestId("receipt-confirm-button");
+        fireEvent.click(confirmBtn);
+
+        // Items step should now display the image and the items
+        expect(screen.getByTestId("receipt-review-image")).toBeInTheDocument();
+        expect(await screen.findByDisplayValue("Salad", {}, { timeout: 2500 })).toBeInTheDocument();
+        expect(screen.getByDisplayValue("15")).toBeInTheDocument();
+    });
+
+    it("confidence indicators render for parsed items", async () => {
+        // Setup MSW to return items with varying confidences
+        server.use(
+            http.post("/api/receipts/parse", () => {
+                return HttpResponse.json({
+                    items: [
+                        { name: "Salad", price: 15.00, confidence: "low" },
+                        { name: "Soup", price: 8.00, confidence: "medium" },
+                    ],
+                    receipt_image_url: "fake_url.jpg"
+                });
+            })
+        );
+
+        render(<NewBillPage />);
+        fireEvent.click(screen.getByTestId("input-method-receipt"));
+
+        const uploader = screen.getByTestId("receipt-file-input");
+        const file = new File(["dummy content"], "receipt.png", { type: "image/png" });
+        Object.defineProperty(uploader, "files", { value: [file] });
+        fireEvent.change(uploader);
+
+        fireEvent.click(screen.getByTestId("scan-receipt-button"));
+
+        // The Confidence Badges should render in the ReceiptReview component before confirming
+        expect(await screen.findByText("LOW")).toBeInTheDocument();
+        expect(screen.getByText("MED")).toBeInTheDocument();
+
+        // Confirm the parsed items
+        fireEvent.click(screen.getByTestId("receipt-confirm-button"));
+
+        // Both badges should persist in the Items step
+        expect(screen.getByText("LOW")).toBeInTheDocument();
+        expect(screen.getByText("MED")).toBeInTheDocument();
+    });
+
+    it("parse failure falls back to manual input layout", async () => {
+        // Setup MSW to return an error (422)
+        server.use(
+            http.post("/api/receipts/parse", () => {
+                return new HttpResponse(null, { status: 422 });
+            })
+        );
+
+        render(<NewBillPage />);
+        fireEvent.click(screen.getByTestId("input-method-receipt"));
+
+        const uploader = screen.getByTestId("receipt-file-input");
+        const file = new File(["dummy content"], "receipt.png", { type: "image/png" });
+        Object.defineProperty(uploader, "files", { value: [file] });
+        fireEvent.change(uploader);
+
+        fireEvent.click(screen.getByTestId("scan-receipt-button"));
+
+        // Expect an error text
+        expect(await screen.findByTestId("receipt-upload-error", {}, { timeout: 2500 })).toHaveTextContent("Could not read this image. Please try a clearer photo.");
+
+        // Switch to the Items tab
+        fireEvent.click(screen.getByTestId("section-header-1"));
+
+        // Ensure image does not render
+        expect(screen.queryByTestId("receipt-review-image")).not.toBeInTheDocument();
     });
 
     // ── Section 2: Participants ──

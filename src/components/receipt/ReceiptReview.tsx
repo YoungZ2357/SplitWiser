@@ -23,6 +23,10 @@ export interface ReceiptReviewProps {
     onConfirm: (items: ParsedItem[]) => void;
     /** Called when user wants to re-upload a different receipt. */
     onRetake: () => void;
+    /** Whether the receipt items have been confirmed. */
+    isConfirmed?: boolean;
+    /** How many items were confirmed, to display in the collapsed state. */
+    confirmedCount?: number;
 }
 
 // ═══════════════════════════════════════════════════
@@ -34,6 +38,8 @@ export default function ReceiptReview({
     parsedItems,
     onConfirm,
     onRetake,
+    isConfirmed,
+    confirmedCount = 0,
 }: ReceiptReviewProps) {
     const [items, setItems] = useState<ParsedItem[]>(parsedItems);
     const [showImage, setShowImage] = useState(false); // mobile toggle
@@ -58,18 +64,34 @@ export default function ReceiptReview({
         ]);
     };
 
+    const removeAllItems = () => {
+        setItems([]);
+    };
+
     const subtotal = items.reduce((s, i) => s + i.price, 0);
 
     const lowConfidenceCount = items.filter(
         (i) => i.confidence === "low" || i.confidence === "medium"
     ).length;
 
+    if (isConfirmed) {
+        return (
+            <div className="flex items-center gap-3 px-4 py-3 rounded-[10px] bg-surface-alt border border-border mt-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={imageUrl} alt="Receipt" className="w-10 h-10 object-cover rounded bg-surface border border-border" />
+                <span className="text-sm font-sans text-text-muted">
+                    Receipt uploaded · {confirmedCount} item{confirmedCount !== 1 ? "s" : ""} parsed
+                </span>
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col gap-3">
             {/* ── Info banner ── */}
             {lowConfidenceCount > 0 && (
                 <div
-                    className="px-3 py-2 rounded-lg bg-[rgba(251,191,36,0.12)] font-sans text-xs text-[#92700C]"
+                    className="px-3 py-2 rounded-lg bg-amber-light font-sans text-xs text-[#92700C]"
                     data-testid="confidence-warning"
                 >
                     {lowConfidenceCount} item{lowConfidenceCount > 1 ? "s" : ""} may
@@ -124,12 +146,10 @@ export default function ReceiptReview({
                         <div
                             key={i}
                             className={cn(
-                                "flex items-center gap-2 px-3.5 py-2.5 bg-surface rounded-[10px] border",
-                                item.confidence === "low"
-                                    ? "border-[rgba(190,59,59,0.3)]"
-                                    : item.confidence === "medium"
-                                        ? "border-[rgba(251,191,36,0.4)]"
-                                        : "border-border"
+                                "flex items-center gap-2 px-3.5 py-2.5 bg-surface rounded-[10px]",
+                                "border border-border", // Base 1px border on all sides
+                                item.confidence === "low" && "border-l-[3px] border-l-red bg-red-light",
+                                item.confidence === "medium" && "border-l-[3px] border-l-amber bg-amber-light"
                             )}
                         >
                             <div className="flex-[2] flex items-center gap-2">
@@ -187,9 +207,20 @@ export default function ReceiptReview({
 
                     {/* Subtotal */}
                     <div className="flex justify-between px-3.5 py-2 font-sans text-sm">
-                        <span className="text-text-muted">
-                            {items.length} item{items.length !== 1 ? "s" : ""}
-                        </span>
+                        <div className="flex items-center gap-2">
+                            <span className="text-text-muted">
+                                {items.length} item{items.length !== 1 ? "s" : ""}
+                            </span>
+                            {items.length > 0 && (
+                                <button
+                                    onClick={removeAllItems}
+                                    data-testid="review-clear-all-button"
+                                    className="text-[11px] font-semibold tracking-wide text-red/80 hover:text-red transition-colors bg-transparent border-none cursor-pointer p-0"
+                                >
+                                    CLEAR ALL
+                                </button>
+                            )}
+                        </div>
                         <span className="font-semibold text-text">
                             Subtotal: {formatCurrency(subtotal)}
                         </span>
@@ -235,9 +266,7 @@ function ConfidenceBadge({ confidence }: { confidence: string }) {
         <span
             className={cn(
                 "text-[10px] px-2 py-0.5 rounded-[10px] font-sans font-semibold tracking-wide shrink-0",
-                isLow
-                    ? "bg-red-light text-red"
-                    : "bg-[rgba(251,191,36,0.12)] text-[#92700C]"
+                isLow ? "bg-red-light text-red" : "bg-amber-light text-[#92700C]"
             )}
         >
             {isLow ? "LOW" : "MED"}

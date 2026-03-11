@@ -9,6 +9,7 @@ import { formatCurrency } from "@/lib/format";
 import type { BillDetail, CreateBillRequest, UpdateBillRequest } from "@/types";
 import ReceiptUpload from "@/components/receipt/ReceiptUpload";
 import ReceiptReview, { type ParsedItem } from "@/components/receipt/ReceiptReview";
+import ReceiptImage from "@/components/receipt/ReceiptImage";
 
 // ═══════════════════════════════════════════════════
 //  Types
@@ -577,9 +578,13 @@ export default function BillForm({ mode, initialData, onSubmitSuccess }: BillFor
 
     const labelCls = "font-sans text-[11px] text-text-muted block mb-1 uppercase tracking-widest";
     const inputCls = "bg-surface border border-border rounded-[10px] px-3.5 py-[11px] font-serif text-[15px] text-text outline-none w-full";
+    const isReceiptReview = step === 1 && state.receipt_image_url !== null;
 
     return (
-        <div className="max-w-[720px] mx-auto pb-10">
+        <div className={cn(
+            "w-full mx-auto pb-10 transition-all duration-300",
+            isReceiptReview ? "max-w-[1080px]" : "max-w-[720px]"
+        )}>
             {/* ── Header ── */}
             <div className="pt-5 px-6 pb-4 flex justify-between items-center">
                 <div>
@@ -668,6 +673,7 @@ export default function BillForm({ mode, initialData, onSubmitSuccess }: BillFor
                                     <ItemsSection
                                         items={items} tax={tax} tip={tip}
                                         subtotal={subtotal} dispatch={dispatch}
+                                        receiptImageUrl={state.receipt_image_url}
                                     />
                                 )}
                                 {sec.key === 2 && (
@@ -837,12 +843,16 @@ function InputMethodSection({
         );
     }
 
-    // ── Phase 2a: receipt chosen, parsed items returned → show review ──
-    if (state.inputMethod === "receipt" && state.parsedItems) {
+    // ── Phase 2a / 2e: receipt parsed or confirmed ──
+    const isConfirmed = state.inputMethod === "receipt" && state.receipt_image_url !== null && state.parsedItems === null;
+
+    if (state.inputMethod === "receipt" && (state.parsedItems || isConfirmed)) {
         return (
             <ReceiptReview
                 imageUrl={state.receiptPreviewUrl || state.receipt_image_url || ""}
-                parsedItems={state.parsedItems}
+                parsedItems={state.parsedItems || []}
+                isConfirmed={isConfirmed}
+                confirmedCount={state.items.length}
                 onConfirm={handleConfirmParsedItems}
                 onRetake={handleRetake}
             />
@@ -922,22 +932,24 @@ function InputMethodSection({
 
 // ── Items ──
 function ItemsSection({
-    items, tax, tip, subtotal, dispatch,
+    items, tax, tip, subtotal, dispatch, receiptImageUrl
 }: {
     items: FormItem[];
     tax: number;
     tip: number;
     subtotal: number;
     dispatch: React.Dispatch<FormAction>;
+    receiptImageUrl: string | null;
 }) {
-    return (
+    const content = (
         <div className="flex flex-col gap-2">
             {items.map((item, i) => (
                 <div key={i} className={cn(
-                    "flex items-center gap-2 px-3.5 py-2.5 bg-surface rounded-[10px] border",
-                    item.confidence === "low" ? "border-[rgba(190,59,59,0.3)]"
-                        : item.confidence === "medium" ? "border-[rgba(251,191,36,0.4)]"
-                            : "border-border"
+                    "flex items-center gap-2 px-3.5 py-2.5 bg-surface rounded-[10px]",
+                    "border border-border", // Base 1px border
+                    item.confidence === "low" && "border-l-[3px] border-l-red bg-red-light",
+                    item.confidence === "medium" && "border-l-[3px] border-l-amber bg-amber-light",
+                    (!item.confidence || item.confidence === "high") && ""
                 )}>
                     <div className="flex-[2] flex items-center gap-2">
                         <input
@@ -1038,6 +1050,21 @@ function ItemsSection({
             </div>
         </div>
     );
+
+    if (receiptImageUrl) {
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="min-h-0">
+                    <ReceiptImage src={receiptImageUrl} alt="Uploaded receipt" />
+                </div>
+                <div className="min-h-0">
+                    {content}
+                </div>
+            </div>
+        );
+    }
+
+    return content;
 }
 
 // ── Participants ──
