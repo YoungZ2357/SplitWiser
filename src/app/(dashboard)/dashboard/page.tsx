@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Icons } from "@/lib/icons";
 import BillRow from "@/components/bill/BillRow";
 import type { BillSummary } from "@/components/bill/BillRow";
@@ -9,26 +9,45 @@ import PaginationBar from "@/components/ui/PaginationBar";
 import DashboardShell from "@/components/layout/DashboardShell";
 import { useRouter } from "next/navigation";
 
-/* ── Mock data — shaped to match GET /api/bills response (PRD §5.2) ── */
-const MOCK_BILLS: BillSummary[] = [
-    { id: "1", title: "Costco Run", date: "2026-03-05", total: 87.43, participant_count: 3 },
-    { id: "2", title: "Team Lunch — Shake Shack", date: "2026-03-03", total: 62.18, participant_count: 4 },
-    { id: "3", title: "Grocery Split", date: "2026-02-28", total: 134.56, participant_count: 2 },
-    { id: "4", title: "Dinner at Olive Garden", date: "2026-02-25", total: 98.70, participant_count: 5 },
-    { id: "5", title: "Movie Night Snacks", date: "2026-02-22", total: 23.40, participant_count: 3 },
-    { id: "6", title: "Weekend BBQ", date: "2026-02-18", total: 156.22, participant_count: 6 },
-];
-
-const SHOW_EMPTY_STATE = false; // toggle to preview empty state
-const PER_PAGE = 20; // PRD: default 20
+const PER_PAGE = 20;
 
 export default function DashboardPage() {
     const router = useRouter();
-    const bills: BillSummary[] = SHOW_EMPTY_STATE ? [] : MOCK_BILLS;
+    const [bills, setBills] = useState<BillSummary[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const totalPages = Math.ceil(bills.length / PER_PAGE);
-    const visibleBills = bills.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
+    const fetchBills = useCallback(async (page: number) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await fetch(`/api/bills?page=${page}&limit=${PER_PAGE}`);
+            if (!res.ok) {
+                if (res.status === 401) {
+                    router.push("/login"); // Redirect to login if unauthorized
+                    return;
+                }
+                throw new Error("Failed to load bills");
+            }
+            const data = await res.json();
+            setBills(data.bills || []);
+            setTotalCount(data.pagination?.total || 0);
+            setTotalPages(Math.ceil((data.pagination?.total || 0) / PER_PAGE) || 1);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "Something went wrong.";
+            setError(message);
+        } finally {
+            setLoading(false);
+        }
+    }, [router]);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => {
+        fetchBills(currentPage);
+    }, [currentPage, fetchBills]);
 
     return (
         <DashboardShell>
@@ -38,16 +57,31 @@ export default function DashboardPage() {
                     <h1 className="font-serif text-[26px] font-bold tracking-tight m-0">
                         Your Bills
                     </h1>
-                    {bills.length > 0 && (
+                    {bills.length > 0 && !loading && (
                         <p className="font-sans text-[13.5px] text-text-muted mt-1 m-0">
-                            {bills.length} bill{bills.length !== 1 ? "s" : ""} total
+                            {totalCount} bill{totalCount !== 1 ? "s" : ""} total
                         </p>
                     )}
                 </div>
             </div>
 
-            {/* Bill List or Empty State */}
-            {bills.length === 0 ? (
+            {loading ? (
+                <div className="flex justify-center items-center py-20 text-primary">
+                    <div className="w-8 h-8 animate-spin flex items-center justify-center">
+                        {Icons.spinner}
+                    </div>
+                </div>
+            ) : error ? (
+                <div className="text-destructive text-center py-10">
+                    <p>{error}</p>
+                    <button 
+                        onClick={() => fetchBills(currentPage)} 
+                        className="mt-4 px-4 py-2 bg-primary text-white rounded-md font-medium"
+                    >
+                        Try Again
+                    </button>
+                </div>
+            ) : bills.length === 0 ? (
                 <EmptyState
                     icon={Icons.emptyReceipt}
                     title="No bills yet"
@@ -80,21 +114,23 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Bill Rows */}
-                    {visibleBills.map((bill, i) => (
+                    {bills.map((bill, i) => (
                         <BillRow
                             key={bill.id}
                             bill={bill}
-                            showBorder={i < visibleBills.length - 1}
+                            showBorder={i < bills.length - 1}
                             onClick={() => router.push(`/bills/${bill.id}`)}
                         />
                     ))}
 
                     {/* Pagination */}
-                    <PaginationBar
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={setCurrentPage}
-                    />
+                    {totalPages > 1 && (
+                        <PaginationBar
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={setCurrentPage}
+                        />
+                    )}
                 </div>
             )}
         </DashboardShell>

@@ -57,8 +57,18 @@ export async function middleware(request: NextRequest) {
       return supabaseResponse;
     }
 
-    // Receipt parsing and Bill CRUD require authentication
-    if (pathname.startsWith("/api/bills") || pathname.startsWith("/api/receipts")) {
+    // Receipt parsing requires authentication
+    if (pathname.startsWith("/api/receipts")) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // Bills CRUD requires authentication EXCEPT standard GET read requests
+    // Example: GET /api/bills/xyz should be public. POST/PUT/DELETE should be blocked.
+    // GET /api/bills (list) will handle its own empty state / auth check loosely.
+    if (pathname.startsWith("/api/bills") && request.method !== "GET") {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
