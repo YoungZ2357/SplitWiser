@@ -57,4 +57,9 @@ export const Icons: Record<string, ReactNode> = {
             <line x1="3" y1="10" x2="21" y2="10" />
         </svg>
     ),
+    logOut: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
+        </svg>
+    ),
 };

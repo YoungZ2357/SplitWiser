@@ -4,6 +4,7 @@ import { cn } from "@/lib/cn";
 import { Icons } from "@/lib/icons";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import { UserMenu } from "./UserMenu";
 
 interface NavItem {
     label: string;
@@ -68,10 +69,7 @@ export default function Navbar() {
 
                 <div className="w-px h-7 bg-border mx-1.5" />
 
-                {/* TODO: replace with UserMenu dropdown (logout, settings) */}
-                <button className="bg-transparent border-none cursor-pointer text-text-muted p-1 rounded-full flex items-center justify-center">
-                    {Icons.userCircle}
-                </button>
+                <UserMenu />
             </div>
         </nav>
     );
