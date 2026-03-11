@@ -22,7 +22,7 @@ interface FormItem {
     confidence?: "high" | "medium" | "low";
 }
 
-interface BillFormState {
+export interface BillFormState {
     step: number; // 0–4 expanded, -1 collapsed
     title: string;
     date: string; // "YYYY-MM-DD"
@@ -66,7 +66,8 @@ type FormAction =
 
 export interface BillFormProps {
     mode: "create" | "edit";
-    initialData?: BillDetail;
+    billId?: string;
+    initialData?: BillFormState;
     onSubmitSuccess: (billId: string) => void;
 }
 
@@ -448,9 +449,9 @@ function DatePickerField({
 //  Main Component
 // ═══════════════════════════════════════════════════
 
-export default function BillForm({ mode, initialData, onSubmitSuccess }: BillFormProps) {
+export default function BillForm({ mode, billId, initialData, onSubmitSuccess }: BillFormProps) {
     const router = useRouter();
-    const initial = initialData ? mapBillDetailToFormState(initialData) : EMPTY_STATE;
+    const initial = initialData || EMPTY_STATE;
     const [state, dispatch] = useReducer(reducer, initial);
 
     const { step, title, date, items, tax, tip, participants, assignments, submitting, error } = state;
@@ -540,7 +541,10 @@ export default function BillForm({ mode, initialData, onSubmitSuccess }: BillFor
                 const data = await res.json();
                 onSubmitSuccess(data.bill?.id ?? "new-bill-id");
             } else {
-                const billId = initialData!.bill.id;
+                if (!billId) {
+                    dispatch({ type: "SET_FIELD", field: "error", value: "Missing bill ID." });
+                    return;
+                }
                 const body: UpdateBillRequest = {
                     title: title.trim(), date, tax, tip,
                     items: items.map((i) => ({ name: i.name, price: i.price, is_ai_parsed: i.is_ai_parsed })),
@@ -563,7 +567,7 @@ export default function BillForm({ mode, initialData, onSubmitSuccess }: BillFor
         } finally {
             dispatch({ type: "SET_FIELD", field: "submitting", value: false });
         }
-    }, [mode, title, date, tax, tip, items, participants, assignments, initialData, onSubmitSuccess]);
+    }, [mode, billId, title, date, tax, tip, items, participants, assignments, onSubmitSuccess]);
 
     // ── Participant add handler ──
     const handleAddParticipant = useCallback((name: string) => {
