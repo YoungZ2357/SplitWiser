@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
       await supabase.from("bills").delete().eq("id", billId);
       return NextResponse.json({ error: e.message || "Failed to finalize bill creation." }, { status: 500 });
     }
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Validation error", issues: error.flatten().fieldErrors }, { status: 400 });
     }
