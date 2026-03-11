@@ -7,6 +7,8 @@ import { format, parse } from "date-fns";
 import { cn } from "@/lib/cn";
 import { formatCurrency } from "@/lib/format";
 import type { BillDetail, CreateBillRequest, UpdateBillRequest } from "@/types";
+import ReceiptUpload from "@/components/receipt/ReceiptUpload";
+import ReceiptReview, { type ParsedItem } from "@/components/receipt/ReceiptReview";
 
 // ═══════════════════════════════════════════════════
 //  Types
@@ -35,6 +37,13 @@ interface BillFormState {
     // for JSON compat. TOGGLE_ASSIGNMENT enforces uniqueness via includes().
     submitting: boolean;
     error: string | null;
+
+    // ── Receipt upload state (Sprint 2) ──
+    receiptFile: File | null;
+    receiptPreviewUrl: string | null; // blob URL for local preview
+    receiptParsing: boolean;
+    receiptError: string | null;
+    parsedItems: ParsedItem[] | null; // raw parse result before user confirmation
 }
 
 type FormAction =
@@ -47,7 +56,12 @@ type FormAction =
     | { type: "REMOVE_PARTICIPANT"; index: number }
     | { type: "TOGGLE_ASSIGNMENT"; itemIndex: number; participantIndex: number }
     | { type: "TOGGLE_ALL_ASSIGNMENT"; itemIndex: number }
-    | { type: "RESET" };
+    | { type: "RESET" }
+    // ── Receipt actions (Sprint 2) ──
+    | { type: "SET_RECEIPT_FILE"; file: File; previewUrl: string }
+    | { type: "SET_PARSED_ITEMS"; items: ParsedItem[]; receiptImageUrl: string | null }
+    | { type: "CONFIRM_PARSED_ITEMS"; items: ParsedItem[] }
+    | { type: "CLEAR_RECEIPT" };
 
 export interface BillFormProps {
     mode: "create" | "edit";
@@ -88,6 +102,12 @@ export function mapBillDetailToFormState(data: BillDetail): BillFormState {
         assignments,
         submitting: false,
         error: null,
+        // Receipt fields (not applicable in edit mode)
+        receiptFile: null,
+        receiptPreviewUrl: null,
+        receiptParsing: false,
+        receiptError: null,
+        parsedItems: null,
     };
 }
 
@@ -108,6 +128,12 @@ const EMPTY_STATE: BillFormState = {
     assignments: {},
     submitting: false,
     error: null,
+    // Receipt fields
+    receiptFile: null,
+    receiptPreviewUrl: null,
+    receiptParsing: false,
+    receiptError: null,
+    parsedItems: null,
 };
 
 function reducer(state: BillFormState, action: FormAction): BillFormState {
@@ -190,6 +216,60 @@ function reducer(state: BillFormState, action: FormAction): BillFormState {
                 assignments: { ...state.assignments, [action.itemIndex]: next },
             };
         }
+
+        // ── Receipt actions ──
+
+        case "SET_RECEIPT_FILE":
+            return {
+                ...state,
+                receiptFile: action.file,
+                receiptPreviewUrl: action.previewUrl,
+                receiptError: null,
+                parsedItems: null,
+            };
+
+        case "SET_PARSED_ITEMS":
+            return {
+                ...state,
+                receiptParsing: false,
+                receiptError: null,
+                parsedItems: action.items,
+                receipt_image_url: action.receiptImageUrl,
+            };
+
+        case "CONFIRM_PARSED_ITEMS": {
+            // Move reviewed items into the main items list and jump to Items step
+            const formItems: FormItem[] = action.items.map((pi) => ({
+                name: pi.name,
+                price: pi.price,
+                is_ai_parsed: true,
+                confidence: pi.confidence,
+            }));
+            // Default assignment: all participants for each item
+            const newAssignments: Record<number, number[]> = {};
+            formItems.forEach((_, idx) => {
+                newAssignments[idx] = state.participants.map((_, i) => i);
+            });
+            return {
+                ...state,
+                items: formItems,
+                assignments: newAssignments,
+                parsedItems: null,
+                step: 1, // jump to Items section
+            };
+        }
+
+        case "CLEAR_RECEIPT":
+            return {
+                ...state,
+                receiptFile: null,
+                receiptPreviewUrl: null,
+                receiptParsing: false,
+                receiptError: null,
+                parsedItems: null,
+                receipt_image_url: null,
+                inputMethod: null,
+            };
 
         case "RESET":
             return { ...EMPTY_STATE };
@@ -648,6 +728,173 @@ function InputMethodSection({
     state: BillFormState;
     dispatch: React.Dispatch<FormAction>;
 }) {
+    // ── File select: preview only, no parse ──
+    const handleFileSelect = useCallback(
+        (file: File, previewUrl: string) => {
+            dispatch({ type: "SET_RECEIPT_FILE", file, previewUrl });
+        },
+        [dispatch]
+    );
+
+    // ── Scan: sends the stored file to POST /api/receipts/parse ──
+    const handleScanReceipt = useCallback(async () => {
+        if (!state.receiptFile) return;
+
+        dispatch({ type: "SET_FIELD", field: "receiptParsing", value: true });
+        dispatch({ type: "SET_FIELD", field: "receiptError", value: null });
+
+        try {
+            const formData = new FormData();
+            formData.append("image", state.receiptFile);
+
+            const res = await fetch("/api/receipts/parse", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (res.status === 422) {
+                dispatch({
+                    type: "SET_FIELD",
+                    field: "receiptError",
+                    value: "Could not read this image. Please try a clearer photo.",
+                });
+                dispatch({ type: "SET_FIELD", field: "receiptParsing", value: false });
+                return;
+            }
+
+            if (res.status === 429) {
+                dispatch({
+                    type: "SET_FIELD",
+                    field: "receiptError",
+                    value: "Too many requests. Please wait a moment and try again.",
+                });
+                dispatch({ type: "SET_FIELD", field: "receiptParsing", value: false });
+                return;
+            }
+
+            if (!res.ok) {
+                dispatch({
+                    type: "SET_FIELD",
+                    field: "receiptError",
+                    value: "Failed to parse receipt. Please try again.",
+                });
+                dispatch({ type: "SET_FIELD", field: "receiptParsing", value: false });
+                return;
+            }
+
+            const data = await res.json();
+            dispatch({
+                type: "SET_PARSED_ITEMS",
+                items: data.items,
+                receiptImageUrl: data.receipt_image_url ?? null,
+            });
+        } catch {
+            dispatch({
+                type: "SET_FIELD",
+                field: "receiptError",
+                value: "Network error. Please check your connection.",
+            });
+            dispatch({ type: "SET_FIELD", field: "receiptParsing", value: false });
+        }
+    }, [dispatch, state.receiptFile]);
+
+    const handleConfirmParsedItems = useCallback(
+        (items: ParsedItem[]) => {
+            dispatch({ type: "CONFIRM_PARSED_ITEMS", items });
+        },
+        [dispatch]
+    );
+
+    const handleRetake = useCallback(() => {
+        if (state.receiptPreviewUrl) {
+            URL.revokeObjectURL(state.receiptPreviewUrl);
+        }
+        dispatch({ type: "CLEAR_RECEIPT" });
+    }, [dispatch, state.receiptPreviewUrl]);
+
+    // ── Phase 1: no method chosen yet ──
+    if (!state.inputMethod) {
+        return (
+            <div className="flex gap-2.5">
+                {([
+                    { label: "📷 Upload Receipt", value: "receipt" as const },
+                    { label: "✏️ Enter Manually", value: "manual" as const },
+                ]).map((opt) => (
+                    <button
+                        key={opt.value}
+                        onClick={() => {
+                            dispatch({ type: "SET_FIELD", field: "inputMethod", value: opt.value });
+                            if (opt.value === "manual") dispatch({ type: "SET_STEP", step: 1 });
+                        }}
+                        data-testid={`input-method-${opt.value}`}
+                        className={cn(
+                            "flex-1 py-3.5 rounded-[10px] text-center font-sans text-[13px] cursor-pointer",
+                            "bg-surface border border-border text-text-muted font-normal"
+                        )}
+                    >{opt.label}</button>
+                ))}
+            </div>
+        );
+    }
+
+    // ── Phase 2a: receipt chosen, parsed items returned → show review ──
+    if (state.inputMethod === "receipt" && state.parsedItems) {
+        return (
+            <ReceiptReview
+                imageUrl={state.receiptPreviewUrl || state.receipt_image_url || ""}
+                parsedItems={state.parsedItems}
+                onConfirm={handleConfirmParsedItems}
+                onRetake={handleRetake}
+            />
+        );
+    }
+
+    // ── Phase 2b: receipt chosen, file selected with preview → show preview + scan button ──
+    if (state.inputMethod === "receipt" && state.receiptPreviewUrl && !state.receiptParsing) {
+        return (
+            <div className="flex flex-col gap-3">
+                <ReceiptUpload
+                    onFileSelect={handleFileSelect}
+                    previewUrl={state.receiptPreviewUrl}
+                    isParsing={false}
+                    error={state.receiptError}
+                />
+                <button
+                    onClick={handleScanReceipt}
+                    data-testid="scan-receipt-button"
+                    className="w-full py-3 rounded-[10px] border-none bg-accent text-white font-sans text-[13px] font-semibold cursor-pointer transition-colors"
+                >
+                    Scan Receipt
+                </button>
+            </div>
+        );
+    }
+
+    // ── Phase 2c: receipt chosen, currently parsing ──
+    if (state.inputMethod === "receipt" && state.receiptParsing) {
+        return (
+            <ReceiptUpload
+                onFileSelect={handleFileSelect}
+                previewUrl={state.receiptPreviewUrl}
+                isParsing={true}
+                error={state.receiptError}
+            />
+        );
+    }
+
+    // ── Phase 2d: receipt chosen, no file yet → show drop zone ──
+    if (state.inputMethod === "receipt") {
+        return (
+            <ReceiptUpload
+                onFileSelect={handleFileSelect}
+                previewUrl={null}
+                isParsing={false}
+                error={state.receiptError}
+            />
+        );
+    }
+
+    // ── Manual selected: show active state indicator ──
     return (
         <div className="flex gap-2.5">
             {([

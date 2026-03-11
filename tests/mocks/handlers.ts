@@ -1,17 +1,7 @@
-import { http, HttpResponse } from "msw";
-import { mockBillDetails, mockBillsList } from "@/mocks/mockData";
+import { http, HttpResponse, delay } from "msw";
+import { mockBillDetails, mockBillsList } from "./mockData";
 
-/* ── Mock data for receipt parsing (not shared with browser) ── */
-
-const mockParsedReceipt = {
-    items: [
-        { name: "Whole Milk 1gal", price: 4.99, confidence: "high" as const },
-        { name: "Org Granola", price: 8.49, confidence: "medium" as const },
-        { name: "PROT BAR 12PK", price: 12.99, confidence: "high" as const },
-    ],
-};
-
-/* ── Handlers ── */
+/* ── Browser-side MSW handlers (dev server only) ── */
 
 export const handlers = [
     /** GET /api/bills — list bills with pagination (PRD §5.2) */
@@ -24,35 +14,12 @@ export const handlers = [
 
         return HttpResponse.json({
             bills: paged,
-            pagination: {
-                page,
-                limit,
-                total: mockBillsList.length,
-            },
+            pagination: { page, limit, total: mockBillsList.length },
         });
     }),
 
     /** GET /api/bills/:id — bill detail (PRD §5.2) */
     http.get("/api/bills/:id", ({ params }) => {
-        const detail = mockBillDetails.get(params.id as string);
-        if (detail) {
-            return HttpResponse.json(detail);
-        }
-        return new HttpResponse(null, { status: 404 });
-    }),
-
-    /** POST /api/bills — create bill (PRD §5.2) */
-    http.post("/api/bills", async ({ request }) => {
-        const body = await request.json();
-        const bill1 = mockBillDetails.get("1")!;
-        return HttpResponse.json(
-            { ...bill1, bill: { ...bill1.bill, id: "new-bill-id", ...(body as object) } },
-            { status: 201 },
-        );
-    }),
-
-    /** PUT /api/bills/:id — update bill (PRD §5.2) */
-    http.put("/api/bills/:id", async ({ params }) => {
         const detail = mockBillDetails.get(params.id as string);
         if (detail) {
             return HttpResponse.json(detail);
@@ -68,21 +35,35 @@ export const handlers = [
         return new HttpResponse(null, { status: 404 });
     }),
 
-    /** POST /api/receipts/parse — receipt parsing (PRD §5.3) */
-    http.post("/api/receipts/parse", () => {
-        return HttpResponse.json(mockParsedReceipt);
-    }),
+    /** POST /api/receipts/parse — mock receipt parsing (PRD §5.3) */
+    http.post("/api/receipts/parse", async ({ request }) => {
+        // Simulate Gemini processing time
+        await delay(1500);
 
-    /** GET /api/bills/:id/share — public share (PRD §5.4) */
-    http.get("/api/bills/:id/share", ({ params }) => {
-        const detail = mockBillDetails.get(params.id as string);
-        if (detail) {
-            return HttpResponse.json({
-                title: detail.bill.title,
-                date: detail.bill.date,
-                split: detail.split,
-            });
+        // Validate that an image was provided
+        const formData = await request.formData();
+        const image = formData.get("image");
+
+        if (!image || !(image instanceof File)) {
+            return HttpResponse.json(
+                { error: "No image provided" },
+                { status: 400 }
+            );
         }
-        return new HttpResponse(null, { status: 404 });
+
+        // Return mock parsed items matching PRD §5.3 response shape
+        return HttpResponse.json({
+            items: [
+                { name: "Whole Milk 1gal", price: 4.99, confidence: "high" },
+                { name: "Org Granola", price: 8.49, confidence: "medium" },
+                { name: "PROT BAR 12PK", price: 12.99, confidence: "high" },
+                { name: "Bananas 2lb", price: 1.29, confidence: "high" },
+                { name: "CHKN BRST", price: 9.87, confidence: "low" },
+            ],
+            // In production, the backend stores the image in Supabase Storage
+            // and returns the URL here. For mock, we omit it — the frontend
+            // already has the local blob URL for preview.
+            receipt_image_url: null,
+        });
     }),
 ];
