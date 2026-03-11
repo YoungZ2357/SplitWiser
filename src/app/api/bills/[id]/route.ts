@@ -56,11 +56,24 @@ async function fetchAndCheckOwnership(id: string, req: NextRequest) {
   return { supabase, user, bill };
 }
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: { id: string } | Promise<{ id: string }> }) {
   try {
-    const { id } = params;
-    const { supabase, bill, errorResponse } = await fetchAndCheckOwnership(id, req);
-    if (errorResponse) return errorResponse;
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
+    if (!id) return NextResponse.json({ error: "No ID provided" }, { status: 400 });
+
+    const supabase = await getSupabase();
+
+    // Fetch bill (public read is allowed by RLS, so this always works if it exists)
+    const { data: bill, error: billError } = await supabase
+      .from("bills")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (billError || !bill) {
+      return NextResponse.json({ error: "Bill not found" }, { status: 404 });
+    }
 
     // Fetch related items
     const [ { data: items }, { data: participants }, { data: assignments } ] = await Promise.all([
@@ -117,9 +130,10 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: { id: string } | Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
     const { supabase, bill, errorResponse } = await fetchAndCheckOwnership(id, req);
     if (errorResponse) return errorResponse;
 
@@ -235,9 +249,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } | Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
     const { supabase, errorResponse } = await fetchAndCheckOwnership(id, req);
     if (errorResponse) return errorResponse;
 
