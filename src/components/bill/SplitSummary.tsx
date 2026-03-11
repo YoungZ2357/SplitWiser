@@ -65,9 +65,9 @@ export default function SplitSummary({ split, items, participants, assignments }
                             className="flex items-center justify-between px-[18px] py-3.5 cursor-pointer select-none"
                             data-testid={`person-header-${person.participant_id}`}
                         >
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 min-w-0">
                                 <Avatar name={person.participant_name} colorIndex={participantMap[person.participant_id]} />
-                                <span className="font-medium text-[15px]">{person.participant_name}</span>
+                                <span className="font-medium text-[15px] truncate">{person.participant_name}</span>
                             </div>
                             <div className="flex items-center">
                                 <span className="text-[17px] font-semibold tabular-nums">

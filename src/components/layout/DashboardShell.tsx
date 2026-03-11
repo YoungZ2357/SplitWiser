@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Navbar from "@/components/layout/Navbar";
+import BottomTabBar from "@/components/layout/BottomTabBar";
 
 interface DashboardShellProps {
     children: ReactNode;
@@ -29,14 +30,11 @@ export default function DashboardShell({ children, maxWidth = 720 }: DashboardSh
         <>
             <Navbar />
 
-            <main className="w-full mx-auto pt-8 px-6 pb-16" style={{ maxWidth }}>
+            <main className="w-full mx-auto pt-8 px-4 sm:px-6 pb-24 sm:pb-16" style={{ maxWidth }}>
                 {children}
             </main>
 
-            {/*
-        TODO (Sprint 1 polish): mobile bottom tab bar
-        <BottomTabBar /> — shown only below 768px breakpoint
-      */}
+            <BottomTabBar />
         </>
     );
 }

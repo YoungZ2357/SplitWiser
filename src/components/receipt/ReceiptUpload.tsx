@@ -35,6 +35,7 @@ export default function ReceiptUpload({
     isParsing = false,
     error,
 }: ReceiptUploadProps) {
+    const cameraInputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [dragOver, setDragOver] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
@@ -148,9 +149,34 @@ export default function ReceiptUpload({
         );
     }
 
-    // ── Drop zone (default state) ──
     return (
         <div className="flex flex-col gap-2.5">
+            {/* Mobile View: Two distinct buttons */}
+            <div className="flex flex-col gap-3 sm:hidden">
+                <button
+                    onClick={() => cameraInputRef.current?.click()}
+                    className="w-full min-h-[44px] py-3 rounded-xl bg-accent text-white font-serif font-semibold text-[15px] flex items-center justify-center gap-2 shadow-sm"
+                >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                        <circle cx="12" cy="13" r="4" />
+                    </svg>
+                    Take Photo
+                </button>
+                <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full min-h-[44px] py-3 rounded-xl border-2 border-border text-text font-sans font-medium text-[14px] flex items-center justify-center gap-2 bg-surface cursor-pointer"
+                >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="17 8 12 3 7 8" />
+                        <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                    Upload File
+                </button>
+            </div>
+
+            {/* Desktop View: Drop zone */}
             <div
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -158,7 +184,7 @@ export default function ReceiptUpload({
                 onClick={() => fileInputRef.current?.click()}
                 data-testid="receipt-drop-zone"
                 className={cn(
-                    "flex flex-col items-center justify-center gap-2 py-10 rounded-xl border-[2px] border-dashed cursor-pointer transition-all duration-200",
+                    "hidden sm:flex flex-col items-center justify-center gap-2 py-10 rounded-xl border-[2px] border-dashed cursor-pointer transition-all duration-200",
                     dragOver
                         ? "border-accent bg-accent-light"
                         : "border-border bg-surface hover:border-accent/40 hover:bg-accent-light/50"
@@ -181,7 +207,7 @@ export default function ReceiptUpload({
                 </svg>
 
                 <span className="font-serif text-sm text-text">
-                    Tap to take a photo or choose a file
+                    Drag & drop or tap to choose a file
                 </span>
                 <span className="font-sans text-[11px] text-text-muted">
                     JPEG, PNG, or HEIC · Max 10 MB
@@ -189,10 +215,18 @@ export default function ReceiptUpload({
             </div>
 
             <input
-                ref={fileInputRef}
+                ref={cameraInputRef}
                 type="file"
                 accept="image/jpeg,image/png,image/heic"
                 capture="environment"
+                onChange={handleFileChange}
+                className="hidden"
+                data-testid="receipt-camera-input"
+            />
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/heic"
                 onChange={handleFileChange}
                 className="hidden"
                 data-testid="receipt-file-input"

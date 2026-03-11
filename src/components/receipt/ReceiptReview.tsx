@@ -229,11 +229,11 @@ export default function ReceiptReview({
             </div>
 
             {/* ── Action buttons ── */}
-            <div className="flex gap-2.5 mt-1">
+            <div className="flex flex-col-reverse sm:flex-row gap-2.5 mt-1">
                 <button
                     onClick={onRetake}
                     data-testid="receipt-retake-button"
-                    className="flex-1 py-3 rounded-[10px] border border-border bg-surface font-sans text-[13px] text-text-muted cursor-pointer"
+                    className="flex-1 py-3 rounded-[10px] border border-border bg-surface font-sans text-[13px] text-text-muted cursor-pointer min-h-[44px]"
                 >
                     Re-upload
                 </button>
@@ -242,7 +242,7 @@ export default function ReceiptReview({
                     data-testid="receipt-confirm-button"
                     disabled={items.length === 0}
                     className={cn(
-                        "flex-[2] py-3 rounded-[10px] border-none font-sans text-[13px] font-semibold cursor-pointer transition-colors",
+                        "flex-[2] py-3 rounded-[10px] border-none font-sans text-[13px] font-semibold transition-colors min-h-[44px]",
                         items.length === 0
                             ? "bg-surface-alt text-text-muted cursor-not-allowed"
                             : "bg-accent text-white"

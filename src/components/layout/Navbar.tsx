@@ -20,7 +20,7 @@ export default function Navbar() {
     const pathname = usePathname();
 
     return (
-        <nav className="bg-surface border-b border-border px-8 h-[60px] flex items-center justify-between sticky top-0 z-[100] shadow-sm">
+        <nav className="bg-surface border-b border-border px-4 sm:px-8 h-[60px] flex items-center justify-between sticky top-0 z-[100] shadow-sm">
             {/* Left: Logo + Nav links */}
             <div className="flex items-center gap-8">
                 <Link href="/dashboard" className="flex items-center gap-2.5 cursor-pointer no-underline">
@@ -30,7 +30,7 @@ export default function Navbar() {
                     </span>
                 </Link>
 
-                <div className="flex items-center gap-1">
+                <div className="hidden sm:flex items-center gap-1">
                     {NAV_ITEMS.map((item) => {
                         const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
                         return (
@@ -55,16 +55,16 @@ export default function Navbar() {
             <div className="flex items-center gap-2.5">
                 <button
                     onClick={() => router.push("/bills/new")}
-                    className="font-sans text-[13px] font-semibold text-surface bg-accent border-none rounded-lg px-4 py-2 cursor-pointer flex items-center gap-1.5 shadow-accent transition-all duration-150"
+                    className="font-sans text-[13px] font-semibold text-surface bg-accent border-none rounded-lg p-2.5 sm:px-4 sm:py-2 cursor-pointer flex items-center gap-1.5 shadow-accent transition-all duration-150"
                 >
-                    {Icons.plus}<span>New Bill</span>
+                    {Icons.plus}<span className="hidden sm:inline">New Bill</span>
                 </button>
 
                 <button
                     onClick={() => router.push("/bills/new?mode=upload")}
-                    className="font-sans text-[13px] font-medium text-accent bg-accent-light border border-accent/15 rounded-lg px-3.5 py-2 cursor-pointer flex items-center gap-1.5 transition-all duration-150"
+                    className="font-sans text-[13px] font-medium text-accent bg-accent-light border border-accent/15 rounded-lg p-2.5 sm:px-3.5 sm:py-2 cursor-pointer flex items-center gap-1.5 transition-all duration-150"
                 >
-                    {Icons.camera}<span>Upload Receipt</span>
+                    {Icons.camera}<span className="hidden sm:inline">Upload Receipt</span>
                 </button>
 
                 <div className="w-px h-7 bg-border mx-1.5" />
