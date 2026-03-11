@@ -1,4 +1,4 @@
-import { COLORS } from "@/lib/colors";
+import { cn } from "@/lib/cn";
 
 interface PaginationBarProps {
     currentPage: number;
@@ -14,22 +14,11 @@ export default function PaginationBar({ currentPage, totalPages, onPageChange }:
     if (totalPages <= 1) return null;
 
     return (
-        <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "12px 24px",
-            borderTop: `1px solid ${COLORS.border}`,
-            background: COLORS.surfaceAlt,
-        }}>
-      <span style={{
-          fontFamily: "'DM Sans', sans-serif",
-          fontSize: 12.5,
-          color: COLORS.textMuted,
-      }}>
-        Page {currentPage} of {totalPages}
-      </span>
-            <div style={{ display: "flex", gap: 6 }}>
+        <div className="flex justify-between items-center px-6 py-3 border-t border-border bg-surface-alt">
+            <span className="font-sans text-[12.5px] text-text-muted">
+                Page {currentPage} of {totalPages}
+            </span>
+            <div className="flex gap-1.5">
                 <PageBtn
                     label="Prev"
                     disabled={currentPage <= 1}
@@ -56,19 +45,12 @@ function PageBtn({ label, disabled, onClick }: PageBtnProps) {
         <button
             onClick={onClick}
             disabled={disabled}
-            style={{
-                fontFamily: "'DM Sans', sans-serif",
-                fontSize: 12.5,
-                fontWeight: 600,
-                color: disabled ? COLORS.border : COLORS.accent,
-                background: disabled ? "transparent" : COLORS.accentLight,
-                border: `1px solid ${disabled ? COLORS.border : "rgba(192,86,33,0.15)"}`,
-                borderRadius: 6,
-                padding: "5px 14px",
-                cursor: disabled ? "default" : "pointer",
-                transition: "all 0.15s ease",
-                opacity: disabled ? 0.5 : 1,
-            }}
+            className={cn(
+                "font-sans text-[12.5px] font-semibold rounded-md px-3.5 py-1.5 transition-all duration-150",
+                disabled
+                    ? "text-border bg-transparent border border-border cursor-default opacity-50"
+                    : "text-accent bg-accent-light border border-accent/15 cursor-pointer opacity-100"
+            )}
         >{label}</button>
     );
 }

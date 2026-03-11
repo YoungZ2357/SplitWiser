@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { COLORS } from "@/lib/colors";
 import { Icons } from "@/lib/icons";
 import BillRow from "@/components/bill/BillRow";
 import type { BillSummary } from "@/components/bill/BillRow";
@@ -34,27 +33,13 @@ export default function DashboardPage() {
     return (
         <DashboardShell>
             {/* Page Header */}
-            <div style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-end",
-                marginBottom: 24,
-            }}>
+            <div className="flex justify-between items-end mb-6">
                 <div>
-                    <h1 style={{
-                        fontFamily: "'Source Serif 4', Georgia, serif",
-                        fontSize: 26,
-                        fontWeight: 700,
-                        margin: 0,
-                        letterSpacing: "-0.02em",
-                    }}>Your Bills</h1>
+                    <h1 className="font-serif text-[26px] font-bold tracking-tight m-0">
+                        Your Bills
+                    </h1>
                     {bills.length > 0 && (
-                        <p style={{
-                            fontFamily: "'DM Sans', sans-serif",
-                            fontSize: 13.5,
-                            color: COLORS.textMuted,
-                            margin: "4px 0 0",
-                        }}>
+                        <p className="font-sans text-[13.5px] text-text-muted mt-1 m-0">
                             {bills.length} bill{bills.length !== 1 ? "s" : ""} total
                         </p>
                     )}
@@ -83,30 +68,14 @@ export default function DashboardPage() {
                     ]}
                 />
             ) : (
-                <div style={{
-                    background: COLORS.surface,
-                    borderRadius: 16,
-                    border: `1px solid ${COLORS.border}`,
-                    overflow: "hidden",
-                }}>
+                <div className="bg-surface rounded-2xl border border-border overflow-hidden">
                     {/* Table Header */}
-                    <div style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 120px 100px 100px",
-                        padding: "12px 24px",
-                        borderBottom: `1px solid ${COLORS.border}`,
-                        background: COLORS.surfaceAlt,
-                    }}>
+                    <div className="grid grid-cols-[1fr_120px_100px_100px] px-6 py-3 border-b border-border bg-surface-alt">
                         {["Bill", "Date", "People", "Total"].map((h, i) => (
-                            <span key={h} style={{
-                                fontFamily: "'DM Sans', sans-serif",
-                                fontSize: 11.5,
-                                fontWeight: 600,
-                                color: COLORS.textMuted,
-                                textTransform: "uppercase",
-                                letterSpacing: "0.04em",
-                                textAlign: i >= 2 ? "right" : "left",
-                            }}>{h}</span>
+                            <span
+                                key={h}
+                                className={`font-sans text-[11.5px] font-semibold text-text-muted uppercase tracking-wide ${i >= 2 ? "text-right" : "text-left"}`}
+                            >{h}</span>
                         ))}
                     </div>
 

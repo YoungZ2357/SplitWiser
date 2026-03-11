@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { COLORS } from "@/lib/colors";
+import { cn } from "@/lib/cn";
 import { formatCurrency, formatDate } from "@/lib/format";
+import Navbar from "@/components/layout/Navbar";
 import SplitSummary from "@/components/bill/SplitSummary";
 import ItemList from "@/components/bill/ItemList";
 import AssignmentGrid from "@/components/bill/AssignmentGrid";
@@ -100,18 +101,13 @@ export default function BillDetailPage() {
         }
     }, [id, router]);
 
+    const btnBaseCls = "inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[13px] font-medium font-inherit cursor-pointer transition-all duration-150 border whitespace-nowrap";
+
     /* ── Loading state ── */
     if (loading) {
         return (
-            <div style={{ padding: "60px 16px", textAlign: "center" }}>
-                <div
-                    role="status"
-                    style={{
-                        fontFamily: "'DM Sans', sans-serif",
-                        fontSize: 15,
-                        color: COLORS.textMuted,
-                    }}
-                >
+            <div className="px-4 py-[60px] text-center">
+                <div role="status" className="font-sans text-[15px] text-text-muted">
                     Loading bill…
                 </div>
             </div>
@@ -121,30 +117,13 @@ export default function BillDetailPage() {
     /* ── Error state ── */
     if (error || !data) {
         return (
-            <div style={{ padding: "60px 16px", textAlign: "center" }}>
-                <p
-                    role="alert"
-                    style={{
-                        fontFamily: "'DM Sans', sans-serif",
-                        fontSize: 15,
-                        color: COLORS.red,
-                        marginBottom: 16,
-                    }}
-                >
+            <div className="px-4 py-[60px] text-center">
+                <p role="alert" className="font-sans text-[15px] text-red mb-4">
                     {error ?? "Something went wrong."}
                 </p>
                 <button
                     onClick={() => router.push("/dashboard")}
-                    style={{
-                        fontFamily: "'DM Sans', sans-serif",
-                        fontSize: 13,
-                        fontWeight: 500,
-                        color: COLORS.accent,
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        textDecoration: "underline",
-                    }}
+                    className="font-sans text-[13px] font-medium text-accent bg-transparent border-none cursor-pointer underline"
                 >
                     Back to Dashboard
                 </button>
@@ -154,38 +133,14 @@ export default function BillDetailPage() {
 
     const { bill, items, participants, assignments, split } = data;
 
-    /* ── Shared inline styles ── */
-    const btnBase: React.CSSProperties = {
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        padding: "8px 14px",
-        borderRadius: 8,
-        fontSize: 13,
-        fontWeight: 500,
-        fontFamily: "inherit",
-        cursor: "pointer",
-        transition: "all 0.15s",
-        border: "1px solid transparent",
-        whiteSpace: "nowrap",
-    };
-
     return (
         <>
-            <div style={{ maxWidth: 720, margin: "0 auto", padding: "24px 16px 100px" }}>
+            <Navbar />
+            <div className="w-full max-w-[720px] mx-auto px-4 pt-6 pb-[100px]">
                 {/* Back link */}
                 <a
                     onClick={() => router.push("/dashboard")}
-                    style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
-                        fontSize: 13,
-                        color: COLORS.textMuted,
-                        textDecoration: "none",
-                        cursor: "pointer",
-                        marginBottom: 20,
-                    }}
+                    className="inline-flex items-center gap-1.5 text-[13px] text-text-muted no-underline cursor-pointer mb-5"
                 >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="15 18 9 12 15 6" />
@@ -194,54 +149,26 @@ export default function BillDetailPage() {
                 </a>
 
                 {/* ── Header card ── */}
-                <div
-                    style={{
-                        background: COLORS.surface,
-                        border: `1px solid ${COLORS.border}`,
-                        borderRadius: 12,
-                        padding: 24,
-                        marginBottom: 16,
-                    }}
-                >
-                    <div
-                        style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "flex-start",
-                            gap: 16,
-                            marginBottom: 16,
-                        }}
-                    >
+                <div className="bg-surface border border-border rounded-xl p-6 mb-4">
+                    <div className="flex justify-between items-start gap-4 mb-4">
                         <div>
-                            <h1
-                                style={{
-                                    fontFamily: "'DM Serif Display', serif",
-                                    fontSize: 26,
-                                    lineHeight: 1.2,
-                                    letterSpacing: "-0.01em",
-                                    color: COLORS.text,
-                                    margin: 0,
-                                }}
-                            >
+                            <h1 className="font-serif text-[26px] leading-tight tracking-tight text-text m-0">
                                 {bill.title}
                             </h1>
-                            <div style={{ fontSize: 13, color: COLORS.textMuted, marginTop: 4 }}>
+                            <div className="text-[13px] text-text-muted mt-1">
                                 {formatDate(bill.date)}
                             </div>
                         </div>
                         {/* Desktop actions */}
-                        <div
-                            className="header-actions-desktop"
-                            style={{ display: "flex", gap: 8, flexShrink: 0 }}
-                        >
+                        <div className="header-actions-desktop flex gap-2 shrink-0">
                             <button
                                 onClick={handleShare}
-                                style={{
-                                    ...btnBase,
-                                    ...(copiedLink
-                                        ? { background: COLORS.greenLight, color: COLORS.green, borderColor: COLORS.green }
-                                        : { background: COLORS.accent, color: "#fff", borderColor: COLORS.accent }),
-                                }}
+                                className={cn(
+                                    btnBaseCls,
+                                    copiedLink
+                                        ? "bg-green-light text-green border-green"
+                                        : "bg-accent text-white border-accent"
+                                )}
                             >
                                 {copiedLink ? (
                                     <>
@@ -260,7 +187,7 @@ export default function BillDetailPage() {
                             </button>
                             <button
                                 onClick={() => router.push(`/bills/${id}/edit`)}
-                                style={{ ...btnBase, background: "transparent", color: COLORS.text, borderColor: COLORS.border }}
+                                className={cn(btnBaseCls, "bg-transparent text-text border-border")}
                             >
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -269,7 +196,7 @@ export default function BillDetailPage() {
                             </button>
                             <button
                                 onClick={() => setShowDeleteDialog(true)}
-                                style={{ ...btnBase, background: "transparent", color: COLORS.red, borderColor: COLORS.border }}
+                                className={cn(btnBaseCls, "bg-transparent text-red border-border")}
                             >
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -280,42 +207,21 @@ export default function BillDetailPage() {
                     </div>
 
                     {/* Summary strip */}
-                    <div
-                        style={{
-                            display: "grid",
-                            gridTemplateColumns: "repeat(4, 1fr)",
-                            gap: 1,
-                            background: COLORS.border,
-                            borderRadius: 8,
-                            overflow: "hidden",
-                        }}
-                    >
+                    <div className="grid grid-cols-4 gap-px bg-border rounded-lg overflow-hidden">
                         {[
                             { label: "Subtotal", value: split.subtotal },
                             { label: "Tax", value: split.tax },
                             { label: "Tip", value: split.tip },
                             { label: "Total", value: split.total, accent: true },
                         ].map((cell) => (
-                            <div key={cell.label} style={{ background: COLORS.surface, padding: "14px 16px", textAlign: "center" }}>
-                                <div
-                                    style={{
-                                        fontSize: 11,
-                                        textTransform: "uppercase",
-                                        letterSpacing: "0.06em",
-                                        color: COLORS.textMuted,
-                                        marginBottom: 4,
-                                    }}
-                                >
+                            <div key={cell.label} className="bg-surface px-4 py-3.5 text-center">
+                                <div className="text-[11px] uppercase tracking-widest text-text-muted mb-1">
                                     {cell.label}
                                 </div>
-                                <div
-                                    style={{
-                                        fontSize: 18,
-                                        fontWeight: 600,
-                                        fontVariantNumeric: "tabular-nums",
-                                        color: cell.accent ? COLORS.accent : COLORS.text,
-                                    }}
-                                >
+                                <div className={cn(
+                                    "text-lg font-semibold tabular-nums",
+                                    cell.accent ? "text-accent" : "text-text"
+                                )}>
                                     {formatCurrency(cell.value)}
                                 </div>
                             </div>
@@ -324,13 +230,7 @@ export default function BillDetailPage() {
                 </div>
 
                 {/* ── Tabs ── */}
-                <div
-                    style={{
-                        display: "flex",
-                        borderBottom: `1px solid ${COLORS.border}`,
-                        marginBottom: 16,
-                    }}
-                >
+                <div className="flex border-b border-border mb-4">
                     {([
                         { key: "split" as TabKey, label: "Split Summary" },
                         { key: "items" as TabKey, label: `Items (${items.length})` },
@@ -339,21 +239,12 @@ export default function BillDetailPage() {
                         <button
                             key={tab.key}
                             onClick={() => setActiveTab(tab.key)}
-                            style={{
-                                padding: "12px 20px",
-                                fontSize: 13,
-                                fontWeight: 500,
-                                color: activeTab === tab.key ? COLORS.accent : COLORS.textMuted,
-                                cursor: "pointer",
-                                borderBottom: `2px solid ${activeTab === tab.key ? COLORS.accent : "transparent"}`,
-                                marginBottom: -1,
-                                fontFamily: "inherit",
-                                background: "none",
-                                borderTop: "none",
-                                borderLeft: "none",
-                                borderRight: "none",
-                                transition: "all 0.15s",
-                            }}
+                            className={cn(
+                                "px-5 py-3 text-[13px] font-medium cursor-pointer font-inherit bg-transparent border-l-0 border-r-0 border-t-0 -mb-px transition-all duration-150",
+                                activeTab === tab.key
+                                    ? "text-accent border-b-2 border-accent"
+                                    : "text-text-muted border-b-2 border-transparent"
+                            )}
                         >
                             {tab.label}
                         </button>
@@ -379,42 +270,29 @@ export default function BillDetailPage() {
 
             {/* ── Mobile bottom bar ── */}
             <div
-                className="mobile-bottom-bar"
-                style={{
-                    display: "none",
-                    position: "fixed",
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    background: COLORS.surface,
-                    borderTop: `1px solid ${COLORS.border}`,
-                    padding: "10px 16px",
-                    zIndex: 100,
-                }}
+                className="mobile-bottom-bar hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-border px-4 py-2.5 z-[100]"
             >
-                <div style={{ display: "flex", gap: 8 }}>
+                <div className="flex gap-2">
                     <button
                         onClick={handleShare}
-                        style={{
-                            ...btnBase,
-                            flex: 1,
-                            justifyContent: "center",
-                            ...(copiedLink
-                                ? { background: COLORS.greenLight, color: COLORS.green, borderColor: COLORS.green }
-                                : { background: COLORS.accent, color: "#fff", borderColor: COLORS.accent }),
-                        }}
+                        className={cn(
+                            btnBaseCls, "flex-1 justify-center",
+                            copiedLink
+                                ? "bg-green-light text-green border-green"
+                                : "bg-accent text-white border-accent"
+                        )}
                     >
                         {copiedLink ? "Copied!" : "Share"}
                     </button>
                     <button
                         onClick={() => router.push(`/bills/${id}/edit`)}
-                        style={{ ...btnBase, flex: 1, justifyContent: "center", background: "transparent", color: COLORS.text, borderColor: COLORS.border }}
+                        className={cn(btnBaseCls, "flex-1 justify-center bg-transparent text-text border-border")}
                     >
                         Edit
                     </button>
                     <button
                         onClick={() => setShowDeleteDialog(true)}
-                        style={{ ...btnBase, flex: 1, justifyContent: "center", background: "transparent", color: COLORS.red, borderColor: COLORS.border }}
+                        className={cn(btnBaseCls, "flex-1 justify-center bg-transparent text-red border-border")}
                     >
                         Delete
                     </button>
@@ -425,53 +303,31 @@ export default function BillDetailPage() {
             {showDeleteDialog && (
                 <div
                     onClick={() => setShowDeleteDialog(false)}
-                    style={{
-                        position: "fixed",
-                        inset: 0,
-                        background: "rgba(26,23,20,0.4)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        zIndex: 200,
-                    }}
+                    className="fixed inset-0 bg-[rgba(26,23,20,0.4)] flex items-center justify-center z-[200]"
                 >
                     <div
                         onClick={(e) => e.stopPropagation()}
                         role="dialog"
                         aria-labelledby="delete-dialog-title"
-                        style={{
-                            background: COLORS.surface,
-                            borderRadius: 12,
-                            padding: 28,
-                            maxWidth: 380,
-                            width: "calc(100% - 32px)",
-                            boxShadow: "0 20px 60px rgba(26,23,20,0.2)",
-                        }}
+                        className="bg-surface rounded-xl p-7 max-w-[380px] w-[calc(100%-32px)] shadow-[0_20px_60px_rgba(26,23,20,0.2)]"
                     >
-                        <div
-                            id="delete-dialog-title"
-                            style={{
-                                fontFamily: "'DM Serif Display', serif",
-                                fontSize: 20,
-                                marginBottom: 8,
-                            }}
-                        >
+                        <div id="delete-dialog-title" className="font-serif text-xl mb-2">
                             Delete this bill?
                         </div>
-                        <div style={{ fontSize: 14, color: COLORS.textMuted, lineHeight: 1.5, marginBottom: 20 }}>
+                        <div className="text-sm text-text-muted leading-relaxed mb-5">
                             This will permanently delete &ldquo;{bill.title}&rdquo; and all associated items, participants, and assignments. This action cannot be undone.
                         </div>
-                        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                        <div className="flex gap-2 justify-end">
                             <button
                                 onClick={() => setShowDeleteDialog(false)}
-                                style={{ ...btnBase, background: "transparent", color: COLORS.text, borderColor: COLORS.border }}
+                                className={cn(btnBaseCls, "bg-transparent text-text border-border")}
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleDelete}
                                 disabled={deleting}
-                                style={{ ...btnBase, background: "transparent", color: COLORS.red, borderColor: COLORS.border }}
+                                className={cn(btnBaseCls, "bg-transparent text-red border-border")}
                             >
                                 {deleting ? "Deleting…" : "Delete Bill"}
                             </button>

@@ -1,10 +1,9 @@
 import type { ReactNode } from "react";
-import { COLORS } from "@/lib/colors";
 
 export const Icons: Record<string, ReactNode> = {
     logo: (
         <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-            <rect width="28" height="28" rx="7" fill={COLORS.accent} />
+            <rect width="28" height="28" rx="7" fill="currentColor" />
             <path d="M8 9h12M8 14h8M8 19h10" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
         </svg>
     ),
@@ -45,7 +44,7 @@ export const Icons: Record<string, ReactNode> = {
         </svg>
     ),
     emptyReceipt: (
-        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke={COLORS.border} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 2v20l3-2 3 2 3-2 3 2 3-2 3 2V2l-3 2-3-2-3 2-3-2-3 2-3-2z" />
             <path d="M8 10h8M8 14h4" />
         </svg>

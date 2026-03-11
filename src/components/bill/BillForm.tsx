@@ -4,7 +4,7 @@ import { useReducer, useCallback, useMemo, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { DayPicker } from "react-day-picker";
 import { format, parse } from "date-fns";
-import { COLORS } from "@/lib/colors";
+import { cn } from "@/lib/cn";
 import { formatCurrency } from "@/lib/format";
 import type { BillDetail, CreateBillRequest, UpdateBillRequest } from "@/types";
 
@@ -257,22 +257,20 @@ function calcSplit(
 //  Micro components
 // ═══════════════════════════════════════════════════
 
-const PARTICIPANT_COLORS = [COLORS.accent, COLORS.green, COLORS.red, COLORS.blue, "#92700C", "#7B61A0"];
-const PARTICIPANT_BG = [
-    COLORS.accentLight, COLORS.greenLight, COLORS.redLight,
-    "rgba(59,110,190,0.08)", "rgba(146,112,12,0.08)", "rgba(123,97,160,0.08)",
-];
+const PARTICIPANT_TEXT = ["text-accent", "text-green", "text-red", "text-blue", "text-[#92700C]", "text-[#7B61A0]"];
+const PARTICIPANT_BG = ["bg-accent-light", "bg-green-light", "bg-red-light", "bg-[rgba(59,110,190,0.08)]", "bg-[rgba(146,112,12,0.08)]", "bg-[rgba(123,97,160,0.08)]"];
+const PARTICIPANT_BORDER = ["border-accent", "border-green", "border-red", "border-blue", "border-[#92700C]", "border-[#7B61A0]"];
 
 function ConfidenceBadge({ confidence }: { confidence?: string }) {
     if (!confidence || confidence === "high") return null;
     const isLow = confidence === "low";
     return (
-        <span style={{
-            fontSize: 10, padding: "2px 8px", borderRadius: 10,
-            background: isLow ? COLORS.redLight : "rgba(251,191,36,0.12)",
-            color: isLow ? COLORS.red : "#92700C",
-            fontFamily: "'DM Sans', sans-serif", fontWeight: 600, letterSpacing: 0.5,
-        }}>{isLow ? "LOW" : "MED"}</span>
+        <span className={cn(
+            "text-[10px] px-2 py-0.5 rounded-[10px] font-sans font-semibold tracking-wide",
+            isLow
+                ? "bg-red-light text-red"
+                : "bg-[rgba(251,191,36,0.12)] text-[#92700C]"
+        )}>{isLow ? "LOW" : "MED"}</span>
     );
 }
 
@@ -294,30 +292,19 @@ function DatePickerField({
     const displayText = selectedDate ? format(selectedDate, "MMM d, yyyy") : "Pick a date";
 
     return (
-        <div ref={containerRef} style={{ position: "relative" }}>
+        <div ref={containerRef} className="relative">
             <button
                 type="button"
                 onClick={() => setOpen(!open)}
                 data-testid="date-picker-trigger"
-                style={{
-                    width: "100%",
-                    background: COLORS.surface,
-                    border: `1px solid ${COLORS.border}`,
-                    borderRadius: 10,
-                    padding: "11px 14px",
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontSize: 14,
-                    color: selectedDate ? COLORS.text : COLORS.textMuted,
-                    cursor: "pointer",
-                    textAlign: "left",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                }}
+                className={cn(
+                    "w-full bg-surface border border-border rounded-[10px] px-3.5 py-[11px] font-sans text-sm cursor-pointer text-left flex items-center justify-between",
+                    selectedDate ? "text-text" : "text-text-muted"
+                )}
             >
                 <span>{displayText}</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={COLORS.textMuted}
-                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-text-muted">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
                     <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" />
                     <line x1="3" y1="10" x2="21" y2="10" />
@@ -328,15 +315,10 @@ function DatePickerField({
                     {/* Click-away overlay */}
                     <div
                         onClick={() => setOpen(false)}
-                        style={{ position: "fixed", inset: 0, zIndex: 99 }}
+                        className="fixed inset-0 z-[99]"
                         data-testid="date-picker-overlay"
                     />
-                    <div style={{
-                        position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100,
-                        background: COLORS.surface, border: `1px solid ${COLORS.border}`,
-                        borderRadius: 12, boxShadow: "0 8px 24px rgba(26,23,20,0.12)",
-                        padding: 12,
-                    }}>
+                    <div className="absolute top-[calc(100%+4px)] left-0 z-[100] bg-surface border border-border rounded-xl shadow-[0_8px_24px_rgba(26,23,20,0.12)] p-3">
                         <DayPicker
                             mode="single"
                             selected={selectedDate}
@@ -349,11 +331,11 @@ function DatePickerField({
                             styles={{
                                 month_caption: {
                                     fontFamily: "'Source Serif 4', Georgia, serif",
-                                    fontSize: 15, fontWeight: 600, color: COLORS.text,
+                                    fontSize: 15, fontWeight: 600, color: "var(--color-text)",
                                 },
                                 weekday: {
                                     fontFamily: "'DM Sans', sans-serif",
-                                    fontSize: 11, color: COLORS.textMuted,
+                                    fontSize: 11, color: "var(--color-text-muted)",
                                 },
                                 day_button: {
                                     fontFamily: "'DM Sans', sans-serif",
@@ -362,15 +344,15 @@ function DatePickerField({
                                     cursor: "pointer",
                                 },
                                 today: {
-                                    fontWeight: 700, color: COLORS.accent,
+                                    fontWeight: 700, color: "var(--color-accent)",
                                 },
                                 selected: {
-                                    background: COLORS.accent,
+                                    background: "var(--color-accent)",
                                     color: "#fff",
                                     borderRadius: 8,
                                 },
                                 chevron: {
-                                    fill: COLORS.textMuted,
+                                    fill: "var(--color-text-muted)",
                                 },
                             }}
                         />
@@ -513,63 +495,44 @@ export default function BillForm({ mode, initialData, onSubmitSuccess }: BillFor
     //  Render
     // ═══════════════════════════════════════════════════
 
-    const labelStyle: React.CSSProperties = {
-        fontFamily: "'DM Sans', sans-serif", fontSize: 11, color: COLORS.textMuted,
-        display: "block", marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.8,
-    };
-
-    const inputStyle: React.CSSProperties = {
-        background: COLORS.surface, border: `1px solid ${COLORS.border}`, borderRadius: 10,
-        padding: "11px 14px", fontFamily: "'Source Serif 4', Georgia, serif",
-        fontSize: 15, color: COLORS.text, outline: "none", width: "100%",
-    };
+    const labelCls = "font-sans text-[11px] text-text-muted block mb-1 uppercase tracking-widest";
+    const inputCls = "bg-surface border border-border rounded-[10px] px-3.5 py-[11px] font-serif text-[15px] text-text outline-none w-full";
 
     return (
-        <div style={{ maxWidth: 720, margin: "0 auto", padding: "0 0 40px" }}>
+        <div className="max-w-[720px] mx-auto pb-10">
             {/* ── Header ── */}
-            <div style={{
-                padding: "20px 24px 16px",
-                display: "flex", justifyContent: "space-between", alignItems: "center",
-            }}>
+            <div className="pt-5 px-6 pb-4 flex justify-between items-center">
                 <div>
-                    <div style={{
-                        fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: COLORS.textMuted,
-                        letterSpacing: 1, textTransform: "uppercase",
-                    }}>{mode === "edit" ? "Edit" : "Create"}</div>
-                    <h1 style={{
-                        fontFamily: "'Source Serif 4', Georgia, serif",
-                        fontSize: 26, color: COLORS.text, margin: "4px 0 0", fontWeight: 700,
-                    }}>{mode === "edit" ? "Edit Bill" : "New Bill"}</h1>
+                    <div className="font-sans text-xs text-text-muted tracking-widest uppercase">
+                        {mode === "edit" ? "Edit" : "Create"}
+                    </div>
+                    <h1 className="font-serif text-[26px] text-text mt-1 font-bold">
+                        {mode === "edit" ? "Edit Bill" : "New Bill"}
+                    </h1>
                 </div>
                 <button
                     onClick={handleClose}
                     aria-label="Close"
                     data-testid="close-button"
-                    style={{
-                        width: 40, height: 40, borderRadius: 12,
-                        background: COLORS.surface, border: `1px solid ${COLORS.border}`,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
-                        fontSize: 18, color: COLORS.textMuted,
-                    }}
+                    className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center cursor-pointer font-sans text-lg text-text-muted"
                 >×</button>
             </div>
 
             {/* ── Title + Date ── */}
-            <div style={{ padding: "0 24px 20px", display: "flex", gap: 12 }}>
-                <div style={{ flex: 2 }}>
-                    <label style={labelStyle}>Title</label>
+            <div className="px-6 pb-5 flex gap-3">
+                <div className="flex-[2]">
+                    <label className={labelCls}>Title</label>
                     <input
                         type="text"
                         value={title}
                         onChange={(e) => dispatch({ type: "SET_FIELD", field: "title", value: e.target.value })}
                         placeholder="e.g. Costco Run March 1"
-                        style={inputStyle}
+                        className={inputCls}
                         data-testid="title-input"
                     />
                 </div>
-                <div style={{ flex: 1 }}>
-                    <label style={labelStyle}>Date</label>
+                <div className="flex-1">
+                    <label className={labelCls}>Date</label>
                     <DatePickerField
                         value={date}
                         onChange={(d) => dispatch({ type: "SET_FIELD", field: "date", value: d })}
@@ -578,67 +541,48 @@ export default function BillForm({ mode, initialData, onSubmitSuccess }: BillFor
             </div>
 
             {/* ── Accordion ── */}
-            <div style={{
-                margin: "0 24px", border: `1px solid ${COLORS.border}`,
-                borderRadius: 16, overflow: "hidden", background: COLORS.surface,
-            }}>
+            <div className="mx-6 border border-border rounded-2xl overflow-hidden bg-surface">
                 {sections.map((sec) => (
                     <div key={sec.key}>
                         {/* Section Header */}
                         <button
                             onClick={() => dispatch({ type: "SET_STEP", step: sec.key })}
                             data-testid={`section-header-${sec.key}`}
-                            style={{
-                                width: "100%", display: "flex", alignItems: "center",
-                                justifyContent: "space-between",
-                                padding: "16px 20px",
-                                background: step === sec.key ? COLORS.surface : "transparent",
-                                border: "none", borderBottom: `1px solid ${COLORS.border}`,
-                                cursor: "pointer",
-                            }}
+                            className={cn(
+                                "w-full flex items-center justify-between px-5 py-4 border-t-0 border-l-0 border-r-0 border-b border-border cursor-pointer",
+                                step === sec.key ? "bg-surface" : "bg-transparent"
+                            )}
                         >
-                            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                                <span style={{
-                                    width: 28, height: 28, borderRadius: "50%",
-                                    display: "inline-flex", alignItems: "center",
-                                    justifyContent: "center",
-                                    background: sec.done || step === sec.key
-                                        ? COLORS.accent : COLORS.surfaceAlt,
-                                    color: sec.done || step === sec.key
-                                        ? "#fff" : COLORS.textMuted,
-                                    fontSize: 13, fontFamily: "'DM Sans', sans-serif",
-                                }}>{sec.done ? "✓" : sec.key + 1}</span>
-                                <span style={{
-                                    fontFamily: "'Source Serif 4', Georgia, serif",
-                                    fontSize: 15,
-                                    color: step === sec.key ? COLORS.text : COLORS.textMuted,
-                                    fontWeight: step === sec.key ? 600 : 400,
-                                }}>{sec.title}</span>
+                            <div className="flex items-center gap-3">
+                                <span className={cn(
+                                    "w-7 h-7 rounded-full inline-flex items-center justify-center text-[13px] font-sans",
+                                    (sec.done || step === sec.key)
+                                        ? "bg-accent text-white"
+                                        : "bg-surface-alt text-text-muted"
+                                )}>{sec.done ? "✓" : sec.key + 1}</span>
+                                <span className={cn(
+                                    "font-serif text-[15px]",
+                                    step === sec.key
+                                        ? "text-text font-semibold"
+                                        : "text-text-muted font-normal"
+                                )}>{sec.title}</span>
                             </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <div className="flex items-center gap-2">
                                 {sec.count != null && (
-                                    <span style={{
-                                        fontFamily: "'DM Sans', sans-serif", fontSize: 12,
-                                        color: COLORS.textMuted,
-                                        background: COLORS.surfaceAlt,
-                                        padding: "2px 10px", borderRadius: 10,
-                                    }}>{sec.count}</span>
+                                    <span className="font-sans text-xs text-text-muted bg-surface-alt px-2.5 py-0.5 rounded-[10px]">
+                                        {sec.count}
+                                    </span>
                                 )}
-                                <span style={{
-                                    color: COLORS.textMuted, fontSize: 14,
-                                    transform: step === sec.key
-                                        ? "rotate(180deg)" : "rotate(0)",
-                                    transition: "transform .2s", display: "inline-block",
-                                }}>▾</span>
+                                <span
+                                    className="text-text-muted text-sm inline-block transition-transform duration-200"
+                                    style={{ transform: step === sec.key ? "rotate(180deg)" : "rotate(0)" }}
+                                >▾</span>
                             </div>
                         </button>
 
                         {/* Section Body */}
                         {step === sec.key && (
-                            <div style={{
-                                padding: "16px 20px", background: COLORS.bg,
-                                borderBottom: `1px solid ${COLORS.border}`,
-                            }}>
+                            <div className="px-5 py-4 bg-bg border-b border-border">
                                 {sec.key === 0 && <InputMethodSection state={state} dispatch={dispatch} />}
                                 {sec.key === 1 && (
                                     <ItemsSection
@@ -670,29 +614,23 @@ export default function BillForm({ mode, initialData, onSubmitSuccess }: BillFor
 
             {/* ── Error ── */}
             {error && (
-                <div role="alert" style={{
-                    margin: "12px 24px 0", padding: "10px 14px", borderRadius: 10,
-                    background: COLORS.redLight, color: COLORS.red,
-                    fontFamily: "'DM Sans', sans-serif", fontSize: 13,
-                }}>{error}</div>
+                <div role="alert" className="mx-6 mt-3 px-3.5 py-2.5 rounded-[10px] bg-red-light text-red font-sans text-[13px]">
+                    {error}
+                </div>
             )}
 
             {/* ── Bottom CTA ── */}
-            <div style={{ padding: "24px 24px 0" }}>
+            <div className="px-6 pt-6">
                 <button
                     onClick={handleSubmit}
                     disabled={submitting}
                     data-testid="submit-button"
-                    style={{
-                        width: "100%", padding: "16px", borderRadius: 14, border: "none",
-                        background: submitting ? COLORS.textMuted : COLORS.green,
-                        color: "#fff",
-                        fontFamily: "'Source Serif 4', Georgia, serif",
-                        fontSize: 16, fontWeight: 600,
-                        cursor: submitting ? "not-allowed" : "pointer",
-                        boxShadow: "0 2px 12px rgba(45,122,79,0.25)",
-                        transition: "all 0.15s",
-                    }}
+                    className={cn(
+                        "w-full py-4 rounded-[14px] border-none text-white font-serif text-base font-semibold shadow-green transition-all duration-150",
+                        submitting
+                            ? "bg-text-muted cursor-not-allowed"
+                            : "bg-green cursor-pointer"
+                    )}
                 >{submitting ? "Saving…" : "Save & Share Bill"}</button>
             </div>
         </div>
@@ -711,7 +649,7 @@ function InputMethodSection({
     dispatch: React.Dispatch<FormAction>;
 }) {
     return (
-        <div style={{ display: "flex", gap: 10 }}>
+        <div className="flex gap-2.5">
             {([
                 { label: "📷 Upload Receipt", value: "receipt" as const },
                 { label: "✏️ Enter Manually", value: "manual" as const },
@@ -723,18 +661,12 @@ function InputMethodSection({
                         if (opt.value === "manual") dispatch({ type: "SET_STEP", step: 1 });
                     }}
                     data-testid={`input-method-${opt.value}`}
-                    style={{
-                        flex: 1, padding: "14px", borderRadius: 10, textAlign: "center",
-                        background: state.inputMethod === opt.value
-                            ? COLORS.accentLight : COLORS.surface,
-                        border: `1px solid ${state.inputMethod === opt.value ? COLORS.accent : COLORS.border
-                            }`,
-                        fontFamily: "'DM Sans', sans-serif", fontSize: 13,
-                        color: state.inputMethod === opt.value
-                            ? COLORS.accent : COLORS.textMuted,
-                        fontWeight: state.inputMethod === opt.value ? 600 : 400,
-                        cursor: "pointer",
-                    }}
+                    className={cn(
+                        "flex-1 py-3.5 rounded-[10px] text-center font-sans text-[13px] cursor-pointer",
+                        state.inputMethod === opt.value
+                            ? "bg-accent-light border border-accent text-accent font-semibold"
+                            : "bg-surface border border-border text-text-muted font-normal"
+                    )}
                 >{opt.label}</button>
             ))}
         </div>
@@ -752,17 +684,15 @@ function ItemsSection({
     dispatch: React.Dispatch<FormAction>;
 }) {
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="flex flex-col gap-2">
             {items.map((item, i) => (
-                <div key={i} style={{
-                    display: "flex", alignItems: "center", gap: 8,
-                    padding: "10px 14px", background: COLORS.surface, borderRadius: 10,
-                    border: `1px solid ${item.confidence === "low" ? "rgba(190,59,59,0.3)"
-                            : item.confidence === "medium" ? "rgba(251,191,36,0.4)"
-                                : COLORS.border
-                        }`,
-                }}>
-                    <div style={{ flex: 2, display: "flex", alignItems: "center", gap: 8 }}>
+                <div key={i} className={cn(
+                    "flex items-center gap-2 px-3.5 py-2.5 bg-surface rounded-[10px] border",
+                    item.confidence === "low" ? "border-[rgba(190,59,59,0.3)]"
+                        : item.confidence === "medium" ? "border-[rgba(251,191,36,0.4)]"
+                            : "border-border"
+                )}>
+                    <div className="flex-[2] flex items-center gap-2">
                         <input
                             type="text"
                             value={item.name}
@@ -772,21 +702,12 @@ function ItemsSection({
                             })}
                             placeholder="Item name"
                             data-testid={`item-name-${i}`}
-                            style={{
-                                border: "none", background: "transparent", outline: "none",
-                                fontFamily: "'Source Serif 4', Georgia, serif", fontSize: 14,
-                                color: COLORS.text, width: "100%",
-                            }}
+                            className="border-none bg-transparent outline-none font-serif text-sm text-text w-full"
                         />
                         <ConfidenceBadge confidence={item.confidence} />
                     </div>
-                    <div style={{
-                        display: "flex", alignItems: "center", gap: 6, flexShrink: 0,
-                    }}>
-                        <span style={{
-                            fontFamily: "'DM Sans', sans-serif", fontSize: 14,
-                            color: COLORS.textMuted,
-                        }}>$</span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="font-sans text-sm text-text-muted">$</span>
                         <input
                             type="number"
                             value={item.price || ""}
@@ -799,20 +720,12 @@ function ItemsSection({
                             min="0"
                             step="0.01"
                             data-testid={`item-price-${i}`}
-                            style={{
-                                border: "none", background: "transparent", outline: "none",
-                                fontFamily: "'DM Sans', sans-serif", fontSize: 14,
-                                fontWeight: 600, color: COLORS.text,
-                                width: 60, textAlign: "right",
-                            }}
+                            className="border-none bg-transparent outline-none font-sans text-sm font-semibold text-text w-[60px] text-right"
                         />
                         <button
                             onClick={() => dispatch({ type: "REMOVE_ITEM", index: i })}
                             aria-label={`Remove ${item.name || "item"}`}
-                            style={{
-                                background: "none", border: "none", cursor: "pointer",
-                                color: COLORS.textMuted, fontSize: 14, padding: "0 2px",
-                            }}
+                            className="bg-transparent border-none cursor-pointer text-text-muted text-sm px-0.5"
                         >×</button>
                     </div>
                 </div>
@@ -824,33 +737,16 @@ function ItemsSection({
                     item: { name: "", price: 0, is_ai_parsed: false },
                 })}
                 data-testid="add-item-button"
-                style={{
-                    padding: "10px", borderRadius: 10,
-                    border: `1.5px dashed ${COLORS.border}`,
-                    background: "transparent",
-                    fontFamily: "'DM Sans', sans-serif", fontSize: 13,
-                    color: COLORS.accent, cursor: "pointer",
-                }}
+                className="py-2.5 rounded-[10px] border-[1.5px] border-dashed border-border bg-transparent font-sans text-[13px] text-accent cursor-pointer"
             >+ Add Item</button>
 
             {/* Tax / Tip / Subtotal row */}
-            <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
-                <div style={{ flex: 1 }}>
-                    <div style={{
-                        background: COLORS.surface, borderRadius: 10,
-                        border: `1px solid ${COLORS.border}`, padding: "10px 12px",
-                    }}>
-                        <span style={{
-                            fontFamily: "'DM Sans', sans-serif", fontSize: 11,
-                            color: COLORS.textMuted,
-                        }}>Tax</span>
-                        <div style={{
-                            display: "flex", alignItems: "center", gap: 2, marginTop: 2,
-                        }}>
-                            <span style={{
-                                fontFamily: "'DM Sans', sans-serif", fontSize: 14,
-                                color: COLORS.textMuted,
-                            }}>$</span>
+            <div className="flex gap-2.5 mt-1">
+                <div className="flex-1">
+                    <div className="bg-surface rounded-[10px] border border-border px-3 py-2.5">
+                        <span className="font-sans text-[11px] text-text-muted">Tax</span>
+                        <div className="flex items-center gap-0.5 mt-0.5">
+                            <span className="font-sans text-sm text-text-muted">$</span>
                             <input
                                 type="number"
                                 value={tax || ""}
@@ -860,32 +756,16 @@ function ItemsSection({
                                 })}
                                 min="0" step="0.01"
                                 data-testid="tax-input"
-                                style={{
-                                    border: "none", background: "transparent",
-                                    outline: "none",
-                                    fontFamily: "'DM Sans', sans-serif", fontSize: 14,
-                                    color: COLORS.text, width: "100%",
-                                }}
+                                className="border-none bg-transparent outline-none font-sans text-sm text-text w-full"
                             />
                         </div>
                     </div>
                 </div>
-                <div style={{ flex: 1 }}>
-                    <div style={{
-                        background: COLORS.surface, borderRadius: 10,
-                        border: `1px solid ${COLORS.border}`, padding: "10px 12px",
-                    }}>
-                        <span style={{
-                            fontFamily: "'DM Sans', sans-serif", fontSize: 11,
-                            color: COLORS.textMuted,
-                        }}>Tip</span>
-                        <div style={{
-                            display: "flex", alignItems: "center", gap: 2, marginTop: 2,
-                        }}>
-                            <span style={{
-                                fontFamily: "'DM Sans', sans-serif", fontSize: 14,
-                                color: COLORS.textMuted,
-                            }}>$</span>
+                <div className="flex-1">
+                    <div className="bg-surface rounded-[10px] border border-border px-3 py-2.5">
+                        <span className="font-sans text-[11px] text-text-muted">Tip</span>
+                        <div className="flex items-center gap-0.5 mt-0.5">
+                            <span className="font-sans text-sm text-text-muted">$</span>
                             <input
                                 type="number"
                                 value={tip || ""}
@@ -895,30 +775,17 @@ function ItemsSection({
                                 })}
                                 min="0" step="0.01"
                                 data-testid="tip-input"
-                                style={{
-                                    border: "none", background: "transparent",
-                                    outline: "none",
-                                    fontFamily: "'DM Sans', sans-serif", fontSize: 14,
-                                    color: COLORS.text, width: "100%",
-                                }}
+                                className="border-none bg-transparent outline-none font-sans text-sm text-text w-full"
                             />
                         </div>
                     </div>
                 </div>
-                <div style={{ flex: 1 }}>
-                    <div style={{
-                        background: COLORS.accentLight, borderRadius: 10,
-                        padding: "10px 12px",
-                    }}>
-                        <span style={{
-                            fontFamily: "'DM Sans', sans-serif", fontSize: 11,
-                            color: COLORS.textMuted,
-                        }}>Subtotal</span>
-                        <div style={{
-                            fontFamily: "'Source Serif 4', Georgia, serif",
-                            fontSize: 15, fontWeight: 700, color: COLORS.accent,
-                            marginTop: 2,
-                        }} data-testid="subtotal">{formatCurrency(subtotal)}</div>
+                <div className="flex-1">
+                    <div className="bg-accent-light rounded-[10px] px-3 py-2.5">
+                        <span className="font-sans text-[11px] text-text-muted">Subtotal</span>
+                        <div className="font-serif text-[15px] font-bold text-accent mt-0.5" data-testid="subtotal">
+                            {formatCurrency(subtotal)}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -954,82 +821,50 @@ function ParticipantsSection({
     };
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="flex flex-col gap-2">
             {participants.length < 2 && (
-                <div style={{
-                    padding: "8px 12px", borderRadius: 8,
-                    background: "rgba(251,191,36,0.12)", color: "#92700C",
-                    fontFamily: "'DM Sans', sans-serif", fontSize: 12,
-                }} data-testid="min-participants-warning">
+                <div
+                    className="px-3 py-2 rounded-lg bg-[rgba(251,191,36,0.12)] text-[#92700C] font-sans text-xs"
+                    data-testid="min-participants-warning"
+                >
                     At least 2 participants are required
                 </div>
             )}
 
             {participants.map((p, i) => (
-                <div key={i} style={{
-                    display: "flex", alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "10px 14px", background: COLORS.surface,
-                    borderRadius: 10, border: `1px solid ${COLORS.border}`,
-                }}>
-                    <div style={{
-                        display: "flex", alignItems: "center", gap: 10,
-                    }}>
-                        <div style={{
-                            width: 30, height: 30, borderRadius: "50%",
-                            background: PARTICIPANT_BG[i % PARTICIPANT_BG.length],
-                            display: "flex", alignItems: "center",
-                            justifyContent: "center",
-                            fontFamily: "'Source Serif 4', Georgia, serif",
-                            fontSize: 13,
-                            color: PARTICIPANT_COLORS[i % PARTICIPANT_COLORS.length],
-                            fontWeight: 600,
-                        }}>{p.name[0]?.toUpperCase() ?? "?"}</div>
-                        <span style={{
-                            fontFamily: "'Source Serif 4', Georgia, serif",
-                            fontSize: 14, color: COLORS.text,
-                        }}>{p.name}</span>
+                <div key={i} className="flex items-center justify-between px-3.5 py-2.5 bg-surface rounded-[10px] border border-border">
+                    <div className="flex items-center gap-2.5">
+                        <div className={cn(
+                            "w-[30px] h-[30px] rounded-full flex items-center justify-center font-serif text-[13px] font-semibold",
+                            PARTICIPANT_BG[i % PARTICIPANT_BG.length],
+                            PARTICIPANT_TEXT[i % PARTICIPANT_TEXT.length]
+                        )}>{p.name[0]?.toUpperCase() ?? "?"}</div>
+                        <span className="font-serif text-sm text-text">{p.name}</span>
                     </div>
                     <button
                         onClick={() => dispatch({
                             type: "REMOVE_PARTICIPANT", index: i,
                         })}
                         aria-label={`Remove ${p.name}`}
-                        style={{
-                            background: "none", border: "none",
-                            cursor: "pointer", color: COLORS.textMuted, fontSize: 14,
-                        }}
+                        className="bg-transparent border-none cursor-pointer text-text-muted text-sm"
                     >×</button>
                 </div>
             ))}
 
             {/* Add input */}
-            <div style={{ display: "flex", gap: 8 }}>
+            <div className="flex gap-2">
                 <input
                     id="new-participant-input"
                     type="text"
                     placeholder="Name"
                     onKeyDown={handleKeyDown}
                     data-testid="participant-name-input"
-                    style={{
-                        flex: 1, padding: "10px 14px", borderRadius: 10,
-                        border: `1px solid ${COLORS.border}`,
-                        background: COLORS.surface,
-                        fontFamily: "'Source Serif 4', Georgia, serif",
-                        fontSize: 14, color: COLORS.text, outline: "none",
-                    }}
+                    className="flex-1 px-3.5 py-2.5 rounded-[10px] border border-border bg-surface font-serif text-sm text-text outline-none"
                 />
                 <button
                     onClick={handleAddClick}
                     data-testid="add-participant-button"
-                    style={{
-                        padding: "10px 16px", borderRadius: 10,
-                        border: `1.5px dashed ${COLORS.border}`,
-                        background: "transparent",
-                        fontFamily: "'DM Sans', sans-serif", fontSize: 13,
-                        color: COLORS.accent, cursor: "pointer",
-                        whiteSpace: "nowrap",
-                    }}
+                    className="px-4 py-2.5 rounded-[10px] border-[1.5px] border-dashed border-border bg-transparent font-sans text-[13px] text-accent cursor-pointer whitespace-nowrap"
                 >+ Add Person</button>
             </div>
         </div>
@@ -1046,57 +881,34 @@ function AssignmentSection({
     dispatch: React.Dispatch<FormAction>;
 }) {
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div className="flex flex-col gap-2.5">
             {items.map((item, ii) => {
                 const assigned = assignments[ii] || [];
                 const allSelected =
                     assigned.length === participants.length && participants.length > 0;
                 return (
-                    <div key={ii} style={{
-                        background: COLORS.surface, borderRadius: 12,
-                        padding: "14px", border: `1px solid ${COLORS.border}`,
-                    }}>
-                        <div style={{
-                            display: "flex", justifyContent: "space-between",
-                            marginBottom: 8,
-                        }}>
-                            <span style={{
-                                fontFamily: "'Source Serif 4', Georgia, serif",
-                                fontSize: 14, color: COLORS.text,
-                            }}>{item.name || "(unnamed)"}</span>
-                            <span style={{
-                                fontFamily: "'DM Sans', sans-serif",
-                                fontSize: 13, color: COLORS.textMuted,
-                            }}>{formatCurrency(item.price)}</span>
+                    <div key={ii} className="bg-surface rounded-xl p-3.5 border border-border">
+                        <div className="flex justify-between mb-2">
+                            <span className="font-serif text-sm text-text">{item.name || "(unnamed)"}</span>
+                            <span className="font-sans text-[13px] text-text-muted">{formatCurrency(item.price)}</span>
                         </div>
-                        <div style={{
-                            display: "flex", gap: 6, flexWrap: "wrap",
-                        }}>
+                        <div className="flex gap-1.5 flex-wrap">
                             {/* "Everyone" chip */}
                             <button
                                 onClick={() => dispatch({
                                     type: "TOGGLE_ALL_ASSIGNMENT", itemIndex: ii,
                                 })}
                                 data-testid={`everyone-chip-${ii}`}
-                                style={{
-                                    padding: "5px 14px", borderRadius: 20, fontSize: 13,
-                                    fontFamily: "'Source Serif 4', Georgia, serif",
-                                    border: allSelected
-                                        ? `1.5px solid ${COLORS.accent}`
-                                        : `1.5px solid ${COLORS.border}`,
-                                    background: allSelected
-                                        ? COLORS.accentLight : "transparent",
-                                    color: allSelected
-                                        ? COLORS.accent : COLORS.textMuted,
-                                    cursor: "pointer", transition: "all .2s",
-                                    fontWeight: allSelected ? 600 : 400,
-                                }}
+                                className={cn(
+                                    "px-3.5 py-[5px] rounded-[20px] text-[13px] font-serif cursor-pointer transition-all duration-200 border-[1.5px]",
+                                    allSelected
+                                        ? "border-accent bg-accent-light text-accent font-semibold"
+                                        : "border-border bg-transparent text-text-muted font-normal"
+                                )}
                             >Everyone</button>
 
                             {participants.map((p, pi) => {
                                 const active = assigned.includes(pi);
-                                const chipColor =
-                                    PARTICIPANT_COLORS[pi % PARTICIPANT_COLORS.length];
                                 return (
                                     <button
                                         key={pi}
@@ -1105,34 +917,18 @@ function AssignmentSection({
                                             itemIndex: ii, participantIndex: pi,
                                         })}
                                         data-testid={`assignment-chip-${ii}-${pi}`}
-                                        style={{
-                                            padding: "5px 14px", borderRadius: 20,
-                                            fontSize: 13,
-                                            fontFamily:
-                                                "'Source Serif 4', Georgia, serif",
-                                            border: active
-                                                ? `1.5px solid ${chipColor}`
-                                                : `1.5px solid ${COLORS.border}`,
-                                            background: active
-                                                ? PARTICIPANT_BG[
-                                                pi % PARTICIPANT_BG.length
-                                                ]
-                                                : "transparent",
-                                            color: active
-                                                ? chipColor : COLORS.textMuted,
-                                            cursor: "pointer",
-                                            transition: "all .2s",
-                                            fontWeight: active ? 600 : 400,
-                                        }}
+                                        className={cn(
+                                            "px-3.5 py-[5px] rounded-[20px] text-[13px] font-serif cursor-pointer transition-all duration-200 border-[1.5px]",
+                                            active
+                                                ? cn(PARTICIPANT_BORDER[pi % PARTICIPANT_BORDER.length], PARTICIPANT_BG[pi % PARTICIPANT_BG.length], PARTICIPANT_TEXT[pi % PARTICIPANT_TEXT.length], "font-semibold")
+                                                : "border-border bg-transparent text-text-muted font-normal"
+                                        )}
                                     >{p.name}</button>
                                 );
                             })}
                         </div>
                         {assigned.length > 0 && (
-                            <div style={{
-                                fontFamily: "'DM Sans', sans-serif", fontSize: 12,
-                                color: COLORS.textMuted, marginTop: 8,
-                            }} data-testid={`per-person-cost-${ii}`}>
+                            <div className="font-sans text-xs text-text-muted mt-2" data-testid={`per-person-cost-${ii}`}>
                                 {formatCurrency(item.price / assigned.length)} / person
                             </div>
                         )}
@@ -1140,10 +936,9 @@ function AssignmentSection({
                 );
             })}
             {items.length === 0 && (
-                <div style={{
-                    fontFamily: "'DM Sans', sans-serif", fontSize: 13,
-                    color: COLORS.textMuted, textAlign: "center", padding: 20,
-                }}>Add items first to assign participants.</div>
+                <div className="font-sans text-[13px] text-text-muted text-center py-5">
+                    Add items first to assign participants.
+                </div>
             )}
         </div>
     );
@@ -1158,66 +953,41 @@ function ReviewSection({
 }) {
     if (!split) {
         return (
-            <div style={{
-                fontFamily: "'DM Sans', sans-serif", fontSize: 13,
-                color: COLORS.textMuted, textAlign: "center", padding: 20,
-            }}>Complete the previous steps to see the split preview.</div>
+            <div className="font-sans text-[13px] text-text-muted text-center py-5">
+                Complete the previous steps to see the split preview.
+            </div>
         );
     }
 
-    const editLinkStyle: React.CSSProperties = {
-        fontFamily: "'DM Sans', sans-serif", fontSize: 12, fontWeight: 500,
-        color: COLORS.accent, background: "none", border: "none",
-        cursor: "pointer", textDecoration: "underline", padding: 0,
-    };
+    const editLinkCls = "font-sans text-xs font-medium text-accent bg-transparent border-none cursor-pointer underline p-0";
 
     return (
         <div>
             {/* Edit links */}
-            <div style={{
-                display: "flex", gap: 12, marginBottom: 12,
-                fontFamily: "'DM Sans', sans-serif", fontSize: 12,
-                color: COLORS.textMuted,
-            }}>
+            <div className="flex gap-3 mb-3 font-sans text-xs text-text-muted">
                 <span>Quick edit:</span>
                 <button onClick={() => dispatch({ type: "SET_STEP", step: 1 })}
-                    style={editLinkStyle} data-testid="review-edit-items">
+                    className={editLinkCls} data-testid="review-edit-items">
                     Items
                 </button>
                 <button onClick={() => dispatch({ type: "SET_STEP", step: 2 })}
-                    style={editLinkStyle} data-testid="review-edit-participants">
+                    className={editLinkCls} data-testid="review-edit-participants">
                     Participants
                 </button>
                 <button onClick={() => dispatch({ type: "SET_STEP", step: 3 })}
-                    style={editLinkStyle} data-testid="review-edit-assignments">
+                    className={editLinkCls} data-testid="review-edit-assignments">
                     Assignments
                 </button>
             </div>
 
             {/* Per-person cards */}
             {split.per_person.map((p, i) => (
-                <div key={i} style={{
-                    background: COLORS.surface, borderRadius: 12,
-                    padding: "14px 16px",
-                    border: `1px solid ${COLORS.border}`, marginBottom: 8,
-                }}>
-                    <div style={{
-                        display: "flex", justifyContent: "space-between",
-                        alignItems: "center",
-                    }}>
-                        <span style={{
-                            fontFamily: "'Source Serif 4', Georgia, serif",
-                            fontSize: 15, color: COLORS.text,
-                        }}>{p.participant_name}</span>
-                        <span style={{
-                            fontFamily: "'Source Serif 4', Georgia, serif",
-                            fontSize: 17, fontWeight: 700, color: COLORS.accent,
-                        }}>{formatCurrency(p.total)}</span>
+                <div key={i} className="bg-surface rounded-xl px-4 py-3.5 border border-border mb-2">
+                    <div className="flex justify-between items-center">
+                        <span className="font-serif text-[15px] text-text">{p.participant_name}</span>
+                        <span className="font-serif text-[17px] font-bold text-accent">{formatCurrency(p.total)}</span>
                     </div>
-                    <div style={{
-                        fontFamily: "'DM Sans', sans-serif", fontSize: 12,
-                        color: COLORS.textMuted, marginTop: 6,
-                    }}>
+                    <div className="font-sans text-xs text-text-muted mt-1.5">
                         Items {formatCurrency(p.items_subtotal)} ·
                         Tax {formatCurrency(p.tax_share)} ·
                         Tip {formatCurrency(p.tip_share)}
@@ -1226,30 +996,15 @@ function ReviewSection({
             ))}
 
             {/* Grand total */}
-            <div style={{
-                marginTop: 12, padding: "14px 16px",
-                background: COLORS.accentLight,
-                borderRadius: 12, display: "flex",
-                justifyContent: "space-between",
-            }}>
-                <span style={{
-                    fontFamily: "'Source Serif 4', Georgia, serif",
-                    fontSize: 15, color: COLORS.text,
-                }}>Grand Total</span>
-                <span style={{
-                    fontFamily: "'Source Serif 4', Georgia, serif",
-                    fontSize: 18, fontWeight: 700, color: COLORS.accent,
-                }} data-testid="grand-total">
+            <div className="mt-3 px-4 py-3.5 bg-accent-light rounded-xl flex justify-between">
+                <span className="font-serif text-[15px] text-text">Grand Total</span>
+                <span className="font-serif text-lg font-bold text-accent" data-testid="grand-total">
                     {formatCurrency(split.total)}
                 </span>
             </div>
 
             {/* Rounding disclaimer */}
-            <div style={{
-                fontFamily: "'DM Sans', sans-serif", fontSize: 11,
-                color: COLORS.textMuted,
-                marginTop: 8, textAlign: "center", fontStyle: "italic",
-            }}>
+            <div className="font-sans text-[11px] text-text-muted mt-2 text-center italic">
                 Final amounts are calculated on save and may differ by a few
                 cents due to rounding.
             </div>
