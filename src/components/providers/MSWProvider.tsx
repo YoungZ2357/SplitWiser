@@ -11,7 +11,7 @@ export default function MSWProvider({ children }: { children: ReactNode }) {
     const [ready, setReady] = useState(false);
 
     useEffect(() => {
-        if (process.env.NODE_ENV !== "development") {
+        if (process.env.NODE_ENV !== "development" || process.env.NEXT_PUBLIC_ENABLE_MSW !== "true") {
             setReady(true);
             return;
         }
