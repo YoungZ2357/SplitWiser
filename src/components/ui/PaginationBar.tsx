@@ -14,11 +14,11 @@ export default function PaginationBar({ currentPage, totalPages, onPageChange }:
     if (totalPages <= 1) return null;
 
     return (
-        <div className="flex justify-between items-center px-6 py-3 border-t border-border bg-surface-alt">
+        <div className="flex justify-between items-center px-4 sm:px-6 py-3 border-t border-border bg-surface-alt">
             <span className="font-sans text-[12.5px] text-text-muted">
                 Page {currentPage} of {totalPages}
             </span>
-            <div className="flex gap-1.5">
+            <div className="flex gap-2">
                 <PageBtn
                     label="Prev"
                     disabled={currentPage <= 1}
@@ -46,7 +46,7 @@ function PageBtn({ label, disabled, onClick }: PageBtnProps) {
             onClick={onClick}
             disabled={disabled}
             className={cn(
-                "font-sans text-[12.5px] font-semibold rounded-md px-3.5 py-1.5 transition-all duration-150",
+                "font-sans text-[12.5px] font-semibold rounded-md flex items-center justify-center min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 sm:px-3.5 sm:py-1.5 transition-all duration-150",
                 disabled
                     ? "text-border bg-transparent border border-border cursor-default opacity-50"
                     : "text-accent bg-accent-light border border-accent/15 cursor-pointer opacity-100"

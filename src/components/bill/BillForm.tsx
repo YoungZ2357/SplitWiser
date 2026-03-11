@@ -608,7 +608,7 @@ export default function BillForm({ mode, billId, initialData, onSubmitSuccess }:
             </div>
 
             {/* ── Title + Date ── */}
-            <div className="px-6 pb-5 flex gap-3">
+            <div className="px-6 pb-5 flex flex-col sm:flex-row gap-3">
                 <div className="flex-[2]">
                     <label className={labelCls}>Title</label>
                     <input
@@ -988,7 +988,7 @@ function ItemsSection({
                         <button
                             onClick={() => dispatch({ type: "REMOVE_ITEM", index: i })}
                             aria-label={`Remove ${item.name || "item"}`}
-                            className="bg-transparent border-none cursor-pointer text-text-muted text-sm px-0.5"
+                            className="bg-transparent border-none cursor-pointer text-text-muted text-sm px-0.5 min-w-[44px] min-h-[44px] flex items-center justify-center"
                         >×</button>
                     </div>
                 </div>
@@ -1000,11 +1000,11 @@ function ItemsSection({
                     item: { name: "", price: 0, is_ai_parsed: false },
                 })}
                 data-testid="add-item-button"
-                className="py-2.5 rounded-[10px] border-[1.5px] border-dashed border-border bg-transparent font-sans text-[13px] text-accent cursor-pointer"
+                className="py-2.5 rounded-[10px] border-[1.5px] border-dashed border-border bg-transparent font-sans text-[13px] text-accent cursor-pointer min-h-[44px]"
             >+ Add Item</button>
 
             {/* Tax / Tip / Subtotal row */}
-            <div className="flex gap-2.5 mt-1">
+            <div className="flex flex-col sm:flex-row gap-2.5 mt-1">
                 <div className="flex-1">
                     <div className="bg-surface rounded-[10px] border border-border px-3 py-2.5">
                         <span className="font-sans text-[11px] text-text-muted">Tax</span>
@@ -1124,7 +1124,7 @@ function ParticipantsSection({
                             type: "REMOVE_PARTICIPANT", index: i,
                         })}
                         aria-label={`Remove ${p.name}`}
-                        className="bg-transparent border-none cursor-pointer text-text-muted text-sm"
+                        className="bg-transparent border-none cursor-pointer text-text-muted text-sm min-w-[44px] min-h-[44px] flex items-center justify-center"
                     >×</button>
                 </div>
             ))}
@@ -1142,7 +1142,7 @@ function ParticipantsSection({
                 <button
                     onClick={handleAddClick}
                     data-testid="add-participant-button"
-                    className="px-4 py-2.5 rounded-[10px] border-[1.5px] border-dashed border-border bg-transparent font-sans text-[13px] text-accent cursor-pointer whitespace-nowrap"
+                    className="px-4 py-2.5 rounded-[10px] border-[1.5px] border-dashed border-border bg-transparent font-sans text-[13px] text-accent cursor-pointer whitespace-nowrap min-h-[44px]"
                 >+ Add Person</button>
             </div>
         </div>
@@ -1178,7 +1178,7 @@ function AssignmentSection({
                                 })}
                                 data-testid={`everyone-chip-${ii}`}
                                 className={cn(
-                                    "px-3.5 py-[5px] rounded-[20px] text-[13px] font-serif cursor-pointer transition-all duration-200 border-[1.5px]",
+                                    "px-3.5 py-[5px] rounded-[20px] text-[13px] font-serif cursor-pointer transition-all duration-200 border-[1.5px] min-h-[36px]",
                                     allSelected
                                         ? "border-accent bg-accent-light text-accent font-semibold"
                                         : "border-border bg-transparent text-text-muted font-normal"
@@ -1196,7 +1196,7 @@ function AssignmentSection({
                                         })}
                                         data-testid={`assignment-chip-${ii}-${pi}`}
                                         className={cn(
-                                            "px-3.5 py-[5px] rounded-[20px] text-[13px] font-serif cursor-pointer transition-all duration-200 border-[1.5px]",
+                                            "px-3.5 py-[5px] rounded-[20px] text-[13px] font-serif cursor-pointer transition-all duration-200 border-[1.5px] min-h-[36px]",
                                             active
                                                 ? cn(PARTICIPANT_BORDER[pi % PARTICIPANT_BORDER.length], PARTICIPANT_BG[pi % PARTICIPANT_BG.length], PARTICIPANT_TEXT[pi % PARTICIPANT_TEXT.length], "font-semibold")
                                                 : "border-border bg-transparent text-text-muted font-normal"

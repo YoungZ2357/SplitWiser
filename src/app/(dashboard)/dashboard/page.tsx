@@ -104,7 +104,7 @@ export default function DashboardPage() {
             ) : (
                 <div className="bg-surface rounded-2xl border border-border overflow-hidden">
                     {/* Table Header */}
-                    <div className="grid grid-cols-[1fr_120px_100px_100px] px-6 py-3 border-b border-border bg-surface-alt">
+                    <div className="hidden sm:grid sm:grid-cols-[1fr_120px_100px_100px] px-4 sm:px-6 py-3 border-b border-border bg-surface-alt">
                         {["Bill", "Date", "People", "Total"].map((h, i) => (
                             <span
                                 key={h}

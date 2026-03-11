@@ -101,7 +101,7 @@ export default function BillDetailPage() {
         }
     }, [id, router]);
 
-    const btnBaseCls = "inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[13px] font-medium font-inherit cursor-pointer transition-all duration-150 border whitespace-nowrap";
+    const btnBaseCls = "inline-flex items-center justify-center gap-1.5 px-3.5 py-2 min-h-[44px] rounded-lg text-[13px] font-medium font-inherit cursor-pointer transition-all duration-150 border whitespace-nowrap";
 
     /* ── Loading state ── */
     if (loading) {
@@ -149,10 +149,10 @@ export default function BillDetailPage() {
                 </a>
 
                 {/* ── Header card ── */}
-                <div className="bg-surface border border-border rounded-xl p-6 mb-4">
+                <div className="bg-surface border border-border rounded-xl p-4 sm:p-6 mb-4">
                     <div className="flex justify-between items-start gap-4 mb-4">
-                        <div>
-                            <h1 className="font-serif text-[26px] leading-tight tracking-tight text-text m-0">
+                        <div className="min-w-0 pr-2">
+                            <h1 className="font-serif text-[26px] leading-tight tracking-tight text-text m-0 line-clamp-2">
                                 {bill.title}
                             </h1>
                             <div className="text-[13px] text-text-muted mt-1">
@@ -207,7 +207,7 @@ export default function BillDetailPage() {
                     </div>
 
                     {/* Summary strip */}
-                    <div className="grid grid-cols-4 gap-px bg-border rounded-lg overflow-hidden">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-border rounded-lg overflow-hidden">
                         {[
                             { label: "Subtotal", value: split.subtotal },
                             { label: "Tax", value: split.tax },

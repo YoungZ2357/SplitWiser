@@ -20,7 +20,7 @@ interface EmptyStateProps {
  */
 export default function EmptyState({ icon, title, description, actions = [] }: EmptyStateProps) {
     return (
-        <div className="bg-surface rounded-2xl border border-border px-8 py-16 text-center flex flex-col items-center gap-4">
+        <div className="bg-surface rounded-2xl border border-border px-4 py-8 sm:px-8 sm:py-16 text-center flex flex-col items-center gap-4">
             {icon && <div className="mb-1">{icon}</div>}
 
             <div>
@@ -33,13 +33,13 @@ export default function EmptyState({ icon, title, description, actions = [] }: E
             </div>
 
             {actions.length > 0 && (
-                <div className="flex gap-2.5 mt-2">
+                <div className="flex flex-col sm:flex-row gap-2.5 mt-2 w-full sm:w-auto">
                     {actions.map((action) => (
                         <button
                             key={action.label}
                             onClick={action.onClick}
                             className={cn(
-                                "font-sans text-sm font-semibold rounded-[10px] px-6 py-3 cursor-pointer flex items-center gap-[7px] transition-all duration-150",
+                                "font-sans text-sm font-semibold rounded-[10px] px-6 py-3 min-h-[44px] cursor-pointer flex items-center justify-center gap-[7px] transition-all duration-150 w-full sm:w-auto",
                                 action.primary
                                     ? "text-surface bg-accent border-none shadow-accent"
                                     : "text-accent bg-accent-light border border-accent/15"
