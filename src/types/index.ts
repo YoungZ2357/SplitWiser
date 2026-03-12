@@ -126,3 +126,27 @@ export interface PersonSplit {
   tip_share: number;       // proportional tip
   total: number;           // items_subtotal + tax_share + tip_share
 }
+
+// ---- Share endpoint types ----
+
+export interface ShareItemDetail {
+  name: string;
+  price: number;
+  shared_with: number;
+}
+
+export interface SharePersonSplit extends PersonSplit {
+  items: ShareItemDetail[];
+}
+
+export interface ShareResponse {
+  title: string;
+  date: string;
+  split: {
+    per_person: SharePersonSplit[];
+    subtotal: number;
+    tax: number;
+    tip: number;
+    total: number;
+  };
+}
