@@ -21,7 +21,7 @@ vi.mock("@supabase/ssr", () => {
         }),
       },
       from: vi.fn((table: string) => {
-        const chainable: any = {
+        const chainable: Record<string, unknown> = {
           select: vi.fn().mockImplementation(() => {
             callCount++;
             if (table === "bills" && callCount === 1) return { single: mockSingle.mockResolvedValueOnce({ data: { id: "bill-123", tax: 5, tip: 10 }, error: null }) };

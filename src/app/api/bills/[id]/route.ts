@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { calculateSplit } from "@/lib/split-engine";
 import { createBillSchema } from "@/lib/validators"; // The Update schema is the same shape
 import { z } from "zod";
+import { BillItem, Participant, ItemAssignment, SplitInput } from "@/types";
 
 async function getSupabase() {
   const cookieStore = await cookies();
@@ -30,7 +31,7 @@ async function getSupabase() {
 }
 
 // Reusable Ownership Check
-async function fetchAndCheckOwnership(id: string, req: NextRequest) {
+async function fetchAndCheckOwnership(id: string, _req: NextRequest) {
   const supabase = await getSupabase();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -56,7 +57,7 @@ async function fetchAndCheckOwnership(id: string, req: NextRequest) {
   return { supabase, user, bill };
 }
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } | Promise<{ id: string }> }) {
+export async function GET(_req: NextRequest, { params }: { params: { id: string } | Promise<{ id: string }> }) {
   try {
     const resolvedParams = await params;
     const { id } = resolvedParams;
@@ -82,23 +83,23 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       // To get assignments for a bill, we join through bill_items
       // Fetch item assignments by fetching all items first
       supabase.from("bill_items").select("id").eq("bill_id", id).then(async ({ data: itemData }) => {
-        const itemIds = itemData?.map((i: any) => i.id) || [];
+        const itemIds = (itemData as { id: string }[] | null)?.map(i => i.id) || [];
         if (itemIds.length === 0) return { data: [] };
         return supabase.from("item_assignments").select("*").in("bill_item_id", itemIds);
       })
     ]);
 
-    const resolvedItems = items || [];
-    const resolvedParticipants = participants || [];
-    const resolvedAssignments = assignments || [];
+    const resolvedItems = (items as BillItem[] | null) || [];
+    const resolvedParticipants = (participants as Participant[] | null) || [];
+    const resolvedAssignments = (assignments as ItemAssignment[] | null) || [];
 
     // Map data for Split Engine
-    const splitInput = {
-      items: resolvedItems.map((item: any) => {
+    const splitInput: SplitInput = {
+      items: resolvedItems.map((item) => {
         // Find which participants this item is assigned to
         const assigned_to = resolvedAssignments
-          .filter((a: any) => a.bill_item_id === item.id)
-          .map((a: any) => a.participant_id);
+          .filter((a) => a.bill_item_id === item.id)
+          .map((a) => a.participant_id);
         
         return {
           id: item.id,
@@ -107,7 +108,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
           assigned_to,
         };
       }),
-      participants: resolvedParticipants.map((p: any) => ({
+      participants: resolvedParticipants.map((p) => ({
         id: p.id,
         name: p.name,
       })),
@@ -126,6 +127,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     }, { status: 200 });
 
   } catch (error) {
+    console.error("GET Bill Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
@@ -166,9 +168,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     await supabase.from("participants").delete().eq("bill_id", id);
 
     // Re-insert exactly like POST
-    let insertedItems: any[] = [];
-    let insertedParticipants: any[] = [];
-    let assignmentsToInsert: any[] = [];
+    let insertedItems: BillItem[] = [];
+    let insertedParticipants: Participant[] = [];
+    let assignmentsToInsert: { bill_item_id: string; participant_id: string }[] = [];
 
     if (parsed.items && parsed.items.length > 0) {
       const { data } = await supabase.from("bill_items").insert(
@@ -179,7 +181,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
           is_ai_parsed: item.is_ai_parsed || false,
         }))
       ).select();
-      insertedItems = data || [];
+      insertedItems = (data as BillItem[] | null) || [];
     }
 
     if (parsed.participants && parsed.participants.length > 0) {
@@ -189,7 +191,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
           name: p.name,
         }))
       ).select();
-      insertedParticipants = data || [];
+      insertedParticipants = (data as Participant[] | null) || [];
     }
 
     if (parsed.assignments && parsed.assignments.length > 0 && insertedItems.length > 0 && insertedParticipants.length > 0) {
@@ -209,13 +211,12 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       }
     }
 
-    // Rather than returning immediately, just call the GET handler effectively, or reconstruct.
-    // For perf, reconstruct it since we have all data locally:
-    const splitInput = {
-      items: insertedItems.map((item: any) => {
+    // Reconstruct split input to get final split
+    const splitInput: SplitInput = {
+      items: insertedItems.map((item) => {
         const assigned_to = assignmentsToInsert
-          .filter((a: any) => a.bill_item_id === item.id)
-          .map((a: any) => a.participant_id);
+          .filter((a) => a.bill_item_id === item.id)
+          .map((a) => a.participant_id);
         return {
           id: item.id,
           name: item.name,
@@ -223,7 +224,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
           assigned_to,
         };
       }),
-      participants: insertedParticipants.map((p: any) => ({
+      participants: insertedParticipants.map((p) => ({
         id: p.id,
         name: p.name,
       })),
@@ -241,10 +242,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       split,
     }, { status: 200 });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Validation error", issues: error.flatten().fieldErrors }, { status: 400 });
     }
+    console.error("PUT Bill Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
