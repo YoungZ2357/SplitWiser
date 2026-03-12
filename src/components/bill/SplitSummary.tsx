@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { cn } from "@/lib/cn";
+
 import { formatCurrency } from "@/lib/format";
 import { Avatar } from "@/components/ui/Avatar";
 import type { BillItem, Participant, ItemAssignment, SplitResult } from "@/types";

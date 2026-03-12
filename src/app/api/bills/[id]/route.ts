@@ -31,7 +31,7 @@ async function getSupabase() {
 }
 
 // Reusable Ownership Check
-async function fetchAndCheckOwnership(id: string, _req: NextRequest) {
+async function fetchAndCheckOwnership(id: string, _unusedReq: NextRequest) {
   const supabase = await getSupabase();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
@@ -264,7 +264,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     }
 
     return new NextResponse(null, { status: 204 });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
