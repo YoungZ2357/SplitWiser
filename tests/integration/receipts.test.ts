@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST } from "../../src/app/api/receipts/parse/route";
 import * as gemini from "@/lib/gemini";
+import { ParsedReceiptItem } from "@/types";
 
 // Mocks
 const mockUpload = vi.fn();
@@ -50,7 +51,7 @@ describe("Receipt Parsing API Integration", () => {
     mockGetPublicUrl.mockReturnValue({ data: { publicUrl: "http://example.com/receipt.jpg" } });
     
     // Mock Gemini success
-    const mockItems = [{ name: "Milk", price: 4.99, confidence: "high" }];
+    const mockItems: ParsedReceiptItem[] = [{ name: "Milk", price: 4.99, confidence: "high" }];
     vi.mocked(gemini.parseReceiptImage).mockResolvedValue({
       items: mockItems,
     });
