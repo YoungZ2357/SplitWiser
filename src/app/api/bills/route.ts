@@ -123,15 +123,17 @@ export async function POST(req: NextRequest) {
         assignments: assignmentsToInsert,
       }, { status: 201 });
 
-    } catch (e: any) {
+    } catch (e: unknown) {
       // Compensating Transaction Rollback
       await supabase.from("bills").delete().eq("id", billId);
-      return NextResponse.json({ error: e.message || "Failed to finalize bill creation." }, { status: 500 });
+      const errorMessage = e instanceof Error ? e.message : "Failed to finalize bill creation.";
+      return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Validation error", issues: error.flatten().fieldErrors }, { status: 400 });
     }
+    console.error("POST Bill Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
@@ -166,12 +168,6 @@ export async function GET(req: NextRequest) {
     }
 
     // Getting Bills with counts
-    // For counting participants, supabase can select count relation e.g `participant_count:participants(count)`
-    // And to get the total sum, we might need a view, or simply select bill summary fields. The PRD says "total: 35.97" for bills list.
-    // However, the `bills` table does not store `total` or `participant_count`.
-    // We will query `bills(id, title, date, created_at, bill_items(price), participants(count))`
-    // Note: To calculate total from `bill_items`, since Supabase JS doesn't support sum() in standard select easily without RPC, 
-    // it's easier to just pull the lines and calculate sum in JS since limit is small (e.g., 20)
     const { data: bills, count, error: fetchError } = await supabase
       .from("bills")
       .select(`
@@ -192,9 +188,20 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Failed to fetch bills" }, { status: 500 });
     }
 
-    const mappedBills = (bills || []).map((b: any) => {
+    type RawBill = {
+      id: string;
+      title: string;
+      date: string;
+      tax: number;
+      tip: number;
+      created_at: string;
+      bill_items: { price: number }[];
+      participants: { id: string }[];
+    };
+
+    const mappedBills = (bills as unknown as RawBill[] || []).map((b) => {
       const itemsTotal = Array.isArray(b.bill_items) 
-        ? b.bill_items.reduce((sum: number, item: any) => sum + Number(item.price), 0)
+        ? b.bill_items.reduce((sum, item) => sum + Number(item.price), 0)
         : 0;
 
       return {
@@ -220,6 +227,7 @@ export async function GET(req: NextRequest) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Validation error", issues: error.flatten().fieldErrors }, { status: 400 });
     }
+    console.error("GET Bills Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

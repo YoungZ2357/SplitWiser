@@ -849,7 +849,7 @@ export default function BillDetailPage() {
             <div className="dialog-box" onClick={(e) => e.stopPropagation()}>
               <div className="dialog-title">Delete this bill?</div>
               <div className="dialog-body">
-                This will permanently delete "{bill.title}" and all associated items, participants, and assignments. This action cannot be undone.
+                {`This will permanently delete "${bill.title}" and all associated items, participants, and assignments. This action cannot be undone.`}
               </div>
               <div className="dialog-actions">
                 <button className="btn btn-outline" onClick={() => setShowDeleteDialog(false)}>Cancel</button>
