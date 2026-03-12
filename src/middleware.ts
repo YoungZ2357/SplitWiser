@@ -38,8 +38,10 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Protect Dashboard and related UI pages
+  // Allow /share/* paths to be public (no auth required)
   if (
     !user &&
+    !pathname.startsWith("/share") &&
     (pathname.startsWith("/dashboard") ||
       pathname.startsWith("/bills/new") ||
       (pathname.startsWith("/bills/") && !pathname.includes("/share")))

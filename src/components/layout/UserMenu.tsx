@@ -4,15 +4,24 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Icons } from "@/lib/icons";
 import { cn } from "@/lib/cn";
+import { createClient } from "@/lib/supabase/client";
 
 export function UserMenu() {
     const [isOpen, setIsOpen] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [userEmail, setUserEmail] = useState<string | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
-    
-    // Mock user data
-    const mockEmail = "user@splitwiser.com";
+
+    // Fetch user email on mount
+    useEffect(() => {
+        async function fetchUser() {
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            setUserEmail(user?.email || null);
+        }
+        fetchUser();
+    }, []);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -27,14 +36,30 @@ export function UserMenu() {
 
     const handleLogout = async () => {
         setIsLoggingOut(true);
-        // Simulate network delay for mock logout
-        await new Promise((resolve) => setTimeout(resolve, 600));
-        
-        // In a real implementation: await supabase.auth.signOut();
-        setIsLoggingOut(false);
         setIsOpen(false);
-        // Redirect to homepage/login
-        router.push("/");
+        
+        try {
+            const supabase = createClient();
+            const { error } = await supabase.auth.signOut();
+            
+            if (error) {
+                console.error("Logout error:", error);
+                // Even if there's an error, redirect to login page
+                // The middleware will handle authentication state
+            }
+            
+            // Redirect to login page after logout
+            router.push("/login");
+            // Force a page reload to clear any cached state
+            router.refresh();
+        } catch (err) {
+            console.error("Unexpected logout error:", err);
+            // Still redirect even on error
+            router.push("/login");
+            router.refresh();
+        } finally {
+            setIsLoggingOut(false);
+        }
     };
 
     return (
@@ -52,8 +77,8 @@ export function UserMenu() {
                 <div className="absolute right-0 mt-2 w-56 bg-surface border border-border rounded-xl shadow-lg shadow-black/5 z-[110] overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-200">
                     <div className="px-4 py-3 border-b border-border/60">
                         <p className="text-[12px] font-medium text-text-muted mb-0.5">Logged in as</p>
-                        <p className="text-[13.5px] font-semibold text-text truncate" title={mockEmail}>
-                            {mockEmail}
+                        <p className="text-[13.5px] font-semibold text-text truncate" title={userEmail || "Loading..."}>
+                            {userEmail || "Loading..."}
                         </p>
                     </div>
                     
