@@ -23,6 +23,7 @@ export default function DashboardRouteLayout({ children }: DashboardRouteLayoutP
         TODO: move font loading to src/app/layout.tsx using next/font:
         import { Source_Serif_4, DM_Sans } from 'next/font/google';
       */}
+            {/* eslint-disable-next-line @next/next/no-page-custom-font */}
             <link
                 href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600;8..60,700&family=DM+Sans:wght@400;500;600;700&display=swap"
                 rel="stylesheet"

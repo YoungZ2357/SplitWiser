@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { http, HttpResponse } from "msw";
 import { server } from "../mocks/server";
@@ -86,4 +86,4 @@ describe("Dashboard Page — empty state", () => {
         expect(await screen.findByText("No bills yet")).toBeInTheDocument();
         expect(screen.getByText(/Create your first bill/i)).toBeInTheDocument();
     });
-});
+});

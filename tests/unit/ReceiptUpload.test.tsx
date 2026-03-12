@@ -1,149 +1,201 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
+// ── Mock URL.createObjectURL & URL.revokeObjectURL ──
+const mockCreateObjectURL = vi.fn();
+const mockRevokeObjectURL = vi.fn();
+
+Object.defineProperty(URL, "createObjectURL", {
+  value: mockCreateObjectURL,
+  writable: true,
+});
+
+Object.defineProperty(URL, "revokeObjectURL", {
+  value: mockRevokeObjectURL,
+  writable: true,
+});
+
+// ── Mock cn utility ──
+vi.mock("@/lib/cn", () => ({
+  cn: (...classes: (string | false | undefined | null)[]) =>
+    classes.filter(Boolean).join(" "),
+}));
+
+// ── Import component after mocks ──
 import ReceiptUpload from "@/components/receipt/ReceiptUpload";
 
-// Mock URL.createObjectURL
-const mockCreateObjectURL = vi.fn().mockReturnValue("blob:test-url");
-global.URL.createObjectURL = mockCreateObjectURL;
-
 describe("ReceiptUpload", () => {
-    const mockOnFileSelect = vi.fn();
+  const mockOnFileSelect = vi.fn();
 
-    beforeEach(() => {
-        vi.clearAllMocks();
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockCreateObjectURL.mockReturnValue("blob:test-url");
+  });
+
+  // ── Initial render ──
+  it("renders upload buttons in mobile view", () => {
+    render(<ReceiptUpload onFileSelect={mockOnFileSelect} />);
+    expect(screen.getByText("Take Photo")).toBeInTheDocument();
+    expect(screen.getByText("Upload File")).toBeInTheDocument();
+  });
+
+  it("renders drop zone in desktop view", () => {
+    render(<ReceiptUpload onFileSelect={mockOnFileSelect} />);
+    const dropZone = screen.getByTestId("receipt-drop-zone");
+    expect(dropZone).toBeInTheDocument();
+    expect(screen.getByText("Drag & drop or tap to choose a file")).toBeInTheDocument();
+  });
+
+  // ── File selection via file input ──
+  it("calls onFileSelect with valid file", () => {
+    const file = new File(["dummy content"], "receipt.jpg", {
+      type: "image/jpeg",
+      lastModified: Date.now(),
+    });
+    render(<ReceiptUpload onFileSelect={mockOnFileSelect} />);
+    const fileInput = screen.getByTestId("receipt-file-input");
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    expect(mockCreateObjectURL).toHaveBeenCalledWith(file);
+    expect(mockOnFileSelect).toHaveBeenCalledWith(file, "blob:test-url");
+  });
+
+  it("shows error for unsupported file type", () => {
+    const file = new File(["dummy"], "receipt.gif", { type: "image/gif" });
+    render(<ReceiptUpload onFileSelect={mockOnFileSelect} />);
+    const fileInput = screen.getByTestId("receipt-file-input");
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    expect(screen.getByTestId("receipt-upload-error")).toHaveTextContent(
+      "Unsupported format. Please upload a JPEG, PNG, or HEIC image."
+    );
+    expect(mockOnFileSelect).not.toHaveBeenCalled();
+  });
+
+  it("shows error for oversized file", () => {
+    const oversizedFile = new File(["x".repeat(11 * 1024 * 1024)], "large.jpg", {
+      type: "image/jpeg",
+    });
+    render(<ReceiptUpload onFileSelect={mockOnFileSelect} />);
+    const fileInput = screen.getByTestId("receipt-file-input");
+
+    fireEvent.change(fileInput, { target: { files: [oversizedFile] } });
+
+    expect(screen.getByTestId("receipt-upload-error")).toHaveTextContent(
+      "File too large"
+    );
+    expect(mockOnFileSelect).not.toHaveBeenCalled();
+  });
+
+  // ── Drag & drop ──
+  it("handles drag over and drop", () => {
+    const file = new File(["dummy"], "receipt.png", { type: "image/png" });
+    render(<ReceiptUpload onFileSelect={mockOnFileSelect} />);
+    const dropZone = screen.getByTestId("receipt-drop-zone");
+
+    fireEvent.dragOver(dropZone);
+    expect(dropZone).toHaveClass("border-accent"); // should have drag over class
+
+    fireEvent.drop(dropZone, {
+      dataTransfer: { files: [file] },
     });
 
-    it("renders upload buttons on mobile and drop zone on desktop", () => {
-        render(<ReceiptUpload onFileSelect={mockOnFileSelect} />);
-        expect(screen.getByText("Take Photo")).toBeInTheDocument();
-        expect(screen.getByText("Upload File")).toBeInTheDocument();
-        expect(screen.getByTestId("receipt-drop-zone")).toBeInTheDocument();
-    });
+    expect(mockOnFileSelect).toHaveBeenCalledWith(file, "blob:test-url");
+  });
 
-    it("shows preview when previewUrl is provided", () => {
-        render(
-            <ReceiptUpload
-                onFileSelect={mockOnFileSelect}
-                previewUrl="blob:preview-url"
-            />
-        );
-        expect(screen.getByTestId("receipt-preview-image")).toBeInTheDocument();
-        expect(screen.getByText("Choose a different image")).toBeInTheDocument();
-    });
+  // ── Preview mode ──
+  it("renders preview image when previewUrl is provided", () => {
+    render(
+      <ReceiptUpload
+        onFileSelect={mockOnFileSelect}
+        previewUrl="https://example.com/receipt.jpg"
+      />
+    );
+    const previewImg = screen.getByTestId("receipt-preview-image");
+    expect(previewImg).toBeInTheDocument();
+    expect(previewImg).toHaveAttribute("src", "https://example.com/receipt.jpg");
+    expect(screen.getByText("Choose a different image")).toBeInTheDocument();
+  });
 
-    it("shows parsing indicator when isParsing is true", () => {
-        render(
-            <ReceiptUpload
-                onFileSelect={mockOnFileSelect}
-                isParsing={true}
-            />
-        );
-        expect(screen.getByTestId("receipt-parsing-indicator")).toBeInTheDocument();
-        expect(screen.getByText("Scanning receipt…")).toBeInTheDocument();
-    });
+  it("allows changing file in preview mode", () => {
+    const file = new File(["new"], "new.jpg", { type: "image/jpeg" });
+    render(
+      <ReceiptUpload
+        onFileSelect={mockOnFileSelect}
+        previewUrl="https://example.com/old.jpg"
+      />
+    );
+    const changeButton = screen.getByTestId("change-receipt-button");
+    fireEvent.click(changeButton);
+    const fileInput = screen.getByTestId("receipt-file-input");
+    fireEvent.change(fileInput, { target: { files: [file] } });
 
-    it("shows error message when error prop is provided", () => {
-        render(
-            <ReceiptUpload
-                onFileSelect={mockOnFileSelect}
-                error="Upload failed"
-            />
-        );
-        expect(screen.getByTestId("receipt-upload-error")).toHaveTextContent("Upload failed");
-    });
+    expect(mockOnFileSelect).toHaveBeenCalledWith(file, "blob:test-url");
+  });
 
-    it("validates file type and shows error for unsupported format", () => {
-        render(<ReceiptUpload onFileSelect={mockOnFileSelect} />);
+  // ── Parsing state ──
+  it("renders parsing indicator when isParsing is true", () => {
+    render(<ReceiptUpload onFileSelect={mockOnFileSelect} isParsing />);
+    expect(screen.getByTestId("receipt-parsing-indicator")).toBeInTheDocument();
+    expect(screen.getByText("Scanning receipt…")).toBeInTheDocument();
+  });
 
-        const input = screen.getByTestId("receipt-file-input");
-        const file = new File(["content"], "test.pdf", { type: "application/pdf" });
-        fireEvent.change(input, { target: { files: [file] } });
+  it("does not show preview when isParsing is true even with previewUrl", () => {
+    render(
+      <ReceiptUpload
+        onFileSelect={mockOnFileSelect}
+        previewUrl="https://example.com/receipt.jpg"
+        isParsing
+      />
+    );
+    expect(screen.queryByTestId("receipt-preview-image")).not.toBeInTheDocument();
+    expect(screen.getByTestId("receipt-parsing-indicator")).toBeInTheDocument();
+  });
 
-        expect(screen.getByTestId("receipt-upload-error")).toHaveTextContent(
-            "Unsupported format"
-        );
-        expect(mockOnFileSelect).not.toHaveBeenCalled();
-    });
+  // ── Error display ──
+  it("shows error from props", () => {
+    render(
+      <ReceiptUpload
+        onFileSelect={mockOnFileSelect}
+        error="API error: Invalid image"
+      />
+    );
+    const errorEl = screen.getByTestId("receipt-upload-error");
+    expect(errorEl).toHaveTextContent("API error: Invalid image");
+  });
 
-    it("validates file size and shows error for large files", () => {
-        render(<ReceiptUpload onFileSelect={mockOnFileSelect} />);
+  it("prefers validation error over prop error", () => {
+    const file = new File(["dummy"], "receipt.gif", { type: "image/gif" });
+    render(
+      <ReceiptUpload
+        onFileSelect={mockOnFileSelect}
+        error="API error"
+      />
+    );
+    const fileInput = screen.getByTestId("receipt-file-input");
+    fireEvent.change(fileInput, { target: { files: [file] } });
 
-        const input = screen.getByTestId("receipt-file-input");
-        // Create a file > 10MB
-        const largeContent = new ArrayBuffer(11 * 1024 * 1024);
-        const file = new File([largeContent], "big.jpg", { type: "image/jpeg" });
-        fireEvent.change(input, { target: { files: [file] } });
+    const errorEl = screen.getByTestId("receipt-upload-error");
+    expect(errorEl).toHaveTextContent("Unsupported format");
+    expect(errorEl).not.toHaveTextContent("API error");
+  });
 
-        expect(screen.getByTestId("receipt-upload-error")).toHaveTextContent(
-            "File too large"
-        );
-        expect(mockOnFileSelect).not.toHaveBeenCalled();
-    });
+  // ── Camera input ──
+  it("has camera input with capture attribute", () => {
+    render(<ReceiptUpload onFileSelect={mockOnFileSelect} />);
+    const cameraInput = screen.getByTestId("receipt-camera-input");
+    expect(cameraInput).toHaveAttribute("capture", "environment");
+  });
 
-    it("calls onFileSelect with valid file", () => {
-        render(<ReceiptUpload onFileSelect={mockOnFileSelect} />);
+  it("clicking Take Photo triggers camera input", () => {
+    render(<ReceiptUpload onFileSelect={mockOnFileSelect} />);
+    const cameraInput = screen.getByTestId("receipt-camera-input");
+    const takePhotoButton = screen.getByText("Take Photo");
+    const clickSpy = vi.spyOn(cameraInput, "click");
 
-        const input = screen.getByTestId("receipt-file-input");
-        const file = new File(["image data"], "receipt.jpg", { type: "image/jpeg" });
-        fireEvent.change(input, { target: { files: [file] } });
-
-        expect(mockOnFileSelect).toHaveBeenCalledWith(file, "blob:test-url");
-    });
-
-    it("handles drag and drop", () => {
-        render(<ReceiptUpload onFileSelect={mockOnFileSelect} />);
-
-        const dropZone = screen.getByTestId("receipt-drop-zone");
-        const file = new File(["image data"], "receipt.png", { type: "image/png" });
-
-        fireEvent.dragOver(dropZone, { preventDefault: vi.fn() });
-        fireEvent.drop(dropZone, {
-            preventDefault: vi.fn(),
-            dataTransfer: { files: [file] },
-        });
-
-        expect(mockOnFileSelect).toHaveBeenCalledWith(file, "blob:test-url");
-    });
-
-    it("handles dragLeave event", () => {
-        render(<ReceiptUpload onFileSelect={mockOnFileSelect} />);
-        const dropZone = screen.getByTestId("receipt-drop-zone");
-
-        fireEvent.dragOver(dropZone);
-        fireEvent.dragLeave(dropZone);
-        // No error, component still renders
-        expect(dropZone).toBeInTheDocument();
-    });
-
-    it("handles camera input file change", () => {
-        render(<ReceiptUpload onFileSelect={mockOnFileSelect} />);
-        const input = screen.getByTestId("receipt-camera-input");
-        const file = new File(["photo"], "photo.jpg", { type: "image/jpeg" });
-        fireEvent.change(input, { target: { files: [file] } });
-        expect(mockOnFileSelect).toHaveBeenCalledWith(file, "blob:test-url");
-    });
-
-    it("handles file change in preview mode", () => {
-        render(
-            <ReceiptUpload
-                onFileSelect={mockOnFileSelect}
-                previewUrl="blob:preview-url"
-            />
-        );
-        const input = screen.getByTestId("receipt-file-input");
-        const file = new File(["new image"], "new.jpg", { type: "image/jpeg" });
-        fireEvent.change(input, { target: { files: [file] } });
-        expect(mockOnFileSelect).toHaveBeenCalledWith(file, "blob:test-url");
-    });
-
-    it("shows error in preview mode when error prop is set", () => {
-        render(
-            <ReceiptUpload
-                onFileSelect={mockOnFileSelect}
-                previewUrl="blob:preview-url"
-                error="API error occurred"
-            />
-        );
-        expect(screen.getByTestId("receipt-upload-error")).toHaveTextContent("API error occurred");
-    });
+    fireEvent.click(takePhotoButton);
+    expect(clickSpy).toHaveBeenCalled();
+  });
 });

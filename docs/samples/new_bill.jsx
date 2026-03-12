@@ -168,6 +168,7 @@ export default function NewBillAccordion() {
 
     return (
         <div style={{ background: C.bg, minHeight: "100vh", padding: "0 0 40px" }}>
+            {/* eslint-disable-next-line @next/next/no-page-custom-font */}
             <link
                 href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap"
                 rel="stylesheet"

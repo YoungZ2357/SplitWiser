@@ -40,7 +40,7 @@ export default function ReceiptUpload({
     const [dragOver, setDragOver] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
 
-    const displayError = error || validationError;
+    const displayError = validationError || error;
 
     // ── Validate & process file ──
     const processFile = useCallback(
