@@ -15,6 +15,7 @@ vi.mock("@supabase/ssr", () => ({
       }),
     },
     from: vi.fn((table: string) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Complex Supabase client mock requires 'any' for chainable methods
       const chainable: any = {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
