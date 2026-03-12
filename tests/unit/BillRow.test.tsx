@@ -4,13 +4,16 @@ import BillRow from "@/components/bill/BillRow";
 import type { BillSummary } from "@/components/bill/BillRow";
 
 // Mock Icons
-vi.mock("@/lib/icons", () => ({
-    Icons: {
-        receipt: <div data-testid="icon-receipt">📄</div>,
-        calendar: <div data-testid="icon-calendar">📅</div>,
-        users: <div data-testid="icon-users">👥</div>,
-    },
-}));
+vi.mock("@/lib/icons", async () => {
+    const React = await import("react");
+    return {
+        Icons: {
+            receipt: React.createElement("div", { "data-testid": "icon-receipt" }, "📄"),
+            calendar: React.createElement("div", { "data-testid": "icon-calendar" }, "📅"),
+            users: React.createElement("div", { "data-testid": "icon-users" }, "👥"),
+        },
+    };
+});
 
 // Mock format functions
 vi.mock("@/lib/format", () => ({

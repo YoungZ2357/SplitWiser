@@ -3,13 +3,16 @@ import { describe, it, expect, vi } from "vitest";
 import BillRow, { type BillSummary } from "@/components/bill/BillRow";
 
 /* ── Mock Icons ── */
-vi.mock("@/lib/icons", () => ({
-    Icons: {
-        receipt: <span data-testid="receipt-icon">R</span>,
-        calendar: <span data-testid="calendar-icon">C</span>,
-        users: <span data-testid="users-icon">U</span>,
-    },
-}));
+vi.mock("@/lib/icons", async () => {
+    const React = await import("react");
+    return {
+        Icons: {
+            receipt: React.createElement("span", { "data-testid": "receipt-icon" }, "R"),
+            calendar: React.createElement("span", { "data-testid": "calendar-icon" }, "C"),
+            users: React.createElement("span", { "data-testid": "users-icon" }, "U"),
+        },
+    };
+});
 
 const mockBill: BillSummary = {
     id: "bill-1",
