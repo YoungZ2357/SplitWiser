@@ -83,6 +83,7 @@ export interface UpdateBillRequest {
 
 export interface ParseReceiptResponse {
   items: ParsedReceiptItem[];
+  receipt_image_url?: string;
   raw_text?: string;
 }
 
