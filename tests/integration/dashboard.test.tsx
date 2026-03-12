@@ -1,79 +1,89 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { http, HttpResponse } from "msw";
 import { server } from "../mocks/server";
+import DashboardPage from "@/app/(dashboard)/dashboard/page";
 
 /* ── Mock next/navigation ── */
 const mockPush = vi.fn();
+const mockRouter = { push: mockPush };
 vi.mock("next/navigation", () => ({
-    useRouter: () => ({ push: mockPush }),
+    useRouter: () => mockRouter,
     usePathname: () => "/dashboard",
 }));
 
 /**
  * Integration test for the Dashboard page.
- *
- * NOTE: The current page.tsx uses hardcoded mock data (MOCK_BILLS),
- * not actual fetch calls to /api/bills. These tests validate the
- * component composition and rendering logic.
- *
- * When page.tsx is updated to fetch from GET /api/bills,
- * uncomment the MSW override tests below — they will intercept
- * the real fetch calls and return controlled responses.
+ * Validates the component composition and rendering logic using MSW to mock API responses.
  */
 
-// For now, we import and render the page component directly.
-// The mock data is embedded in the component.
-import DashboardPage from "@/app/(dashboard)/dashboard/page";
-
 describe("Dashboard Page — populated state", () => {
-    it("renders the page heading", () => {
+    it("renders the page heading", async () => {
         render(<DashboardPage />);
-        expect(screen.getByText("Your Bills")).toBeInTheDocument();
+        expect(await screen.findByText("Your Bills")).toBeInTheDocument();
     });
 
-    it("renders bill count", () => {
+    it("renders bill count from mockData.ts", async () => {
         render(<DashboardPage />);
-        expect(screen.getByText("6 bills total")).toBeInTheDocument();
+        // Match "2 bill(s) total" case-insensitively.
+        expect(await screen.findByText(/2 bills? total/i)).toBeInTheDocument();
     });
 
-    it("renders table column headers", () => {
+    it("renders table column headers", async () => {
         render(<DashboardPage />);
-        expect(screen.getByText("Bill")).toBeInTheDocument();
-        expect(screen.getByText("Date")).toBeInTheDocument();
-        expect(screen.getByText("People")).toBeInTheDocument();
-        expect(screen.getByText("Total")).toBeInTheDocument();
+        // Only rendered after bills are loaded
+        expect(await screen.findByText("Bill")).toBeInTheDocument();
+        expect(await screen.findByText("Date")).toBeInTheDocument();
+        expect(await screen.findByText("People")).toBeInTheDocument();
+        expect(await screen.findByText("Total")).toBeInTheDocument();
     });
 
-    it("renders all mock bill titles", () => {
+    it("renders mock bill titles from mockData.ts", async () => {
         render(<DashboardPage />);
-        expect(screen.getByText("Costco Run")).toBeInTheDocument();
-        expect(screen.getByText("Team Lunch — Shake Shack")).toBeInTheDocument();
-        expect(screen.getByText("Grocery Split")).toBeInTheDocument();
-        expect(screen.getByText("Weekend BBQ")).toBeInTheDocument();
+        // mockData.ts titles: "Dinner at John's", "Groceries"
+        expect(await screen.findByText("Dinner at John's")).toBeInTheDocument();
+        expect(await screen.findByText("Groceries")).toBeInTheDocument();
     });
 
-    it("does not show empty state when bills exist", () => {
+    it("does not show empty state when bills exist", async () => {
         render(<DashboardPage />);
+        await screen.findByText("Your Bills");
         expect(screen.queryByText("No bills yet")).not.toBeInTheDocument();
     });
 });
 
 describe("Dashboard Page — navigation", () => {
-    it("navigates to bill detail when a bill row is clicked", () => {
+    it("navigates to bill detail when a bill row is clicked", async () => {
         mockPush.mockClear();
         render(<DashboardPage />);
-        // Click the first bill (Costco Run)
-        const costcoRow = screen.getByText("Costco Run");
-        fireEvent.click(costcoRow);
-        expect(mockPush).toHaveBeenCalledWith("/bills/1");
+        const billRow = await screen.findByText("Dinner at John's");
+        fireEvent.click(billRow);
+        expect(mockPush).toHaveBeenCalledWith("/bills/bill-1");
     });
 
-    it("navigates to correct bill id for each row", () => {
+    it("navigates to correct bill id for second row", async () => {
         mockPush.mockClear();
         render(<DashboardPage />);
-        const groceryRow = screen.getByText("Grocery Split");
+        const groceryRow = await screen.findByText("Groceries");
         fireEvent.click(groceryRow);
-        expect(mockPush).toHaveBeenCalledWith("/bills/3");
+        expect(mockPush).toHaveBeenCalledWith("/bills/bill-2");
     });
 });
+
+describe("Dashboard Page — empty state", () => {
+    it("renders empty state when no bills are returned", async () => {
+        // Override MSW handler for this test
+        server.use(
+            http.get("/api/bills", () => {
+                return HttpResponse.json({
+                    bills: [],
+                    pagination: { page: 1, limit: 20, total: 0 },
+                });
+            })
+        );
+
+        render(<DashboardPage />);
+        expect(await screen.findByText("No bills yet")).toBeInTheDocument();
+        expect(screen.getByText(/Create your first bill/i)).toBeInTheDocument();
+    });
+});
