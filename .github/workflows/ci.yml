@@ -12,15 +12,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: "npm"
-          
+
       - name: Install dependencies
-        run: npm ci
+        run: npm ci || npm install
 
       - name: Lint
         run: npm run lint
@@ -39,3 +39,13 @@ jobs:
 
       - name: Security audit
         run: npm audit --audit-level=high
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://mock.supabase.co' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'mock_anon_key' }}
+          NEXT_PUBLIC_APP_URL: http://localhost:3000

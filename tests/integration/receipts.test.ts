@@ -149,6 +149,63 @@ describe("Receipt Parsing API Integration", () => {
     expect(json.error).toContain("rate limit exceeded");
   });
 
+  it("should return 400 if no image is provided", async () => {
+    const formData = new FormData();
+    // No image appended
+
+    const req = new NextRequest("http://localhost:3000/api/receipts/parse", {
+      method: "POST",
+      body: formData,
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(json.error).toContain("No image provided");
+  });
+
+  it("should return 400 if image exceeds 10MB", async () => {
+    const formData = new FormData();
+    // Create a blob larger than 10MB
+    const largeData = new Uint8Array(11 * 1024 * 1024);
+    const blob = new Blob([largeData], { type: "image/jpeg" });
+    formData.append("image", blob, "large.jpg");
+
+    const req = new NextRequest("http://localhost:3000/api/receipts/parse", {
+      method: "POST",
+      body: formData,
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(json.error).toContain("too large");
+  });
+
+  it("should return 500 on unexpected Gemini failure", async () => {
+    mockUpload.mockResolvedValue({ data: {}, error: null });
+    mockGetPublicUrl.mockReturnValue({ data: { publicUrl: "url" } });
+
+    vi.mocked(gemini.parseReceiptImage).mockRejectedValue(new Error("GEMINI_API_FAILURE"));
+
+    const formData = new FormData();
+    const blob = new Blob(["fake-image-data"], { type: "image/jpeg" });
+    formData.append("image", blob, "receipt.jpg");
+
+    const req = new NextRequest("http://localhost:3000/api/receipts/parse", {
+      method: "POST",
+      body: formData,
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(500);
+    expect(json.error).toContain("Failed to parse receipt");
+  });
+
   it("should return 500 if storage upload fails", async () => {
     mockUpload.mockResolvedValue({ data: null, error: { message: "Storage error" } });
 
