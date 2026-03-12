@@ -46,6 +46,26 @@ describe("parseReceiptImage", () => {
     expect(generateContent).toHaveBeenCalledTimes(1);
   });
 
+  it("should remove markdown code blocks from Gemini response", async () => {
+    const mockItems = [{ name: "Milk", price: 4.99, confidence: "high" }];
+    const markdownResponse = "```json\n" + JSON.stringify(mockItems) + "\n```";
+
+    const mockResponse = {
+      response: {
+        text: () => markdownResponse,
+      },
+    };
+
+    const genAI = new GoogleGenerativeAI("key");
+    const model = genAI.getGenerativeModel({ model: "model" });
+    const generateContent = model.generateContent as unknown as { mockResolvedValue: (val: unknown) => void };
+    generateContent.mockResolvedValue(mockResponse);
+
+    const result = await parseReceiptImage(mockImageBase64, mockMimeType);
+
+    expect(result.items).toEqual(mockItems);
+  });
+
   it("should handle 'not_a_receipt' error from Gemini", async () => {
     const mockResponse = {
       response: {
@@ -61,6 +81,23 @@ describe("parseReceiptImage", () => {
     await expect(parseReceiptImage(mockImageBase64, mockMimeType)).rejects.toThrow(
       "NOT_A_RECEIPT"
     );
+  });
+
+  it("should throw INVALID_JSON_FORMAT if response is not an array", async () => {
+    const mockResponse = {
+      response: {
+        text: () => JSON.stringify({ items: [] }), // Object instead of array
+      },
+    };
+
+    const genAI = new GoogleGenerativeAI("key");
+    const model = genAI.getGenerativeModel({ model: "model" });
+    const generateContent = model.generateContent as unknown as { mockResolvedValue: (val: unknown) => void };
+    generateContent.mockResolvedValue(mockResponse);
+
+    // It will retry once, then throw
+    await expect(parseReceiptImage(mockImageBase64, mockMimeType)).rejects.toThrow();
+    expect(generateContent).toHaveBeenCalledTimes(2);
   });
 
   it("should retry once on invalid JSON", async () => {
@@ -123,6 +160,17 @@ describe("parseReceiptImage", () => {
 
     await expect(parseReceiptImage(mockImageBase64, mockMimeType)).rejects.toThrow(
       "RATE_LIMIT_HIT"
+    );
+  });
+
+  it("should throw GEMINI_API_FAILURE on unexpected errors", async () => {
+    const genAI = new GoogleGenerativeAI("key");
+    const model = genAI.getGenerativeModel({ model: "model" });
+    const generateContent = model.generateContent as unknown as { mockRejectedValue: (val: unknown) => void };
+    generateContent.mockRejectedValue(new Error("Network Error"));
+
+    await expect(parseReceiptImage(mockImageBase64, mockMimeType)).rejects.toThrow(
+      "GEMINI_API_FAILURE"
     );
   });
 });
