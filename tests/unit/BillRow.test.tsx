@@ -28,7 +28,7 @@ vi.mock("@/lib/format", () => ({
 
 // Mock cn utility
 vi.mock("@/lib/cn", () => ({
-    cn: (...classes: any[]) => classes.filter(Boolean).join(" "),
+    cn: (...classes: (string | false | undefined | null)[]) => classes.filter(Boolean).join(" "),
 }));
 
 describe("BillRow", () => {

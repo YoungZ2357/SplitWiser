@@ -5,7 +5,7 @@ import type { BillItem, Participant, ItemAssignment } from "@/types";
 
 // Mock Avatar component
 vi.mock("@/components/ui/Avatar", () => ({
-    Avatar: ({ name, colorIndex, size }: any) => (
+    Avatar: ({ name, colorIndex, size }: { name: string; colorIndex: number; size?: number }) => (
         <div 
             data-testid={`avatar-${name}`}
             data-color-index={colorIndex}
@@ -23,7 +23,7 @@ vi.mock("@/lib/format", () => ({
 
 // Mock cn utility
 vi.mock("@/lib/cn", () => ({
-    cn: (...classes: any[]) => classes.filter(Boolean).join(" "),
+    cn: (...classes: (string | false | undefined | null)[]) => classes.filter(Boolean).join(" "),
 }));
 
 describe("AssignmentGrid", () => {

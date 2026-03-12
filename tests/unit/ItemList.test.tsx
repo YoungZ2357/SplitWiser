@@ -5,9 +5,9 @@ import type { BillItem, Participant, ItemAssignment } from "@/types";
 
 // Mock AvatarStack component
 vi.mock("@/components/ui/Avatar", () => ({
-    AvatarStack: ({ participants, participantMap, size }: any) => (
+    AvatarStack: ({ participants, participantMap: _participantMap, size: _size }: { participants: Participant[]; participantMap: Record<string, number>; size?: number }) => (
         <div data-testid="avatar-stack">
-            {participants.map((p: any) => (
+            {participants.map((p: Participant) => (
                 <span key={p.id} data-testid={`avatar-${p.id}`}>
                     {p.name[0]}
                 </span>
@@ -23,7 +23,7 @@ vi.mock("@/lib/format", () => ({
 
 // Mock cn utility
 vi.mock("@/lib/cn", () => ({
-    cn: (...classes: any[]) => classes.filter(Boolean).join(" "),
+    cn: (...classes: (string | false | undefined | null)[]) => classes.filter(Boolean).join(" "),
 }));
 
 describe("ItemList", () => {

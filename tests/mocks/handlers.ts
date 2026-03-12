@@ -1,4 +1,4 @@
-import { http, HttpResponse, delay } from "msw";
+import { http, HttpResponse } from "msw";
 import { mockBillDetails, mockBillsList } from "./mockData";
 
 /* ── Browser-side MSW handlers (dev server only) ── */
@@ -73,5 +73,10 @@ export const handlers = [
             // already has the local blob URL for preview.
             receipt_image_url: null,
         });
+    }),
+
+    /** PUT /api/bills/:id — update existing bill */
+    http.put("/api/bills/:id", () => {
+        return HttpResponse.json({}, { status: 200 });
     }),
 ];

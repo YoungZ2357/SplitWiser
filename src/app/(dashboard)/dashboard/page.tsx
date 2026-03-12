@@ -44,7 +44,7 @@ export default function DashboardPage() {
         }
     }, [router]);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     useEffect(() => {
         fetchBills(currentPage);
     }, [currentPage, fetchBills]);

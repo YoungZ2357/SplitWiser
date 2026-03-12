@@ -75,3 +75,35 @@ mockBillDetails.set("1", {
         ]
     },
 });
+mockBillDetails.set("test-bill-id", {
+    bill: {
+        id: "test-bill-id",
+        title: "Costco Run",
+        date: "2024-03-10",
+        tax: 8.50,
+        tip: 0.00,
+        receipt_image_url: null,
+    },
+    items: [
+        { id: "i-1", name: "Milk", price: 4.99, is_ai_parsed: false },
+        { id: "i-2", name: "Protein Bars", price: 12.99, is_ai_parsed: false },
+        { id: "i-3", name: "Organic Granola", price: 8.49, is_ai_parsed: false },
+    ],
+    participants: [
+        { id: "p-1", name: "Alice" },
+        { id: "p-2", name: "Bob" },
+        { id: "p-3", name: "Charlie" },
+    ],
+    assignments: [
+        { bill_item_id: "i-1", participant_id: "p-1" },
+        { bill_item_id: "i-2", participant_id: "p-2" },
+        { bill_item_id: "i-3", participant_id: "p-3" },
+    ],
+    split: {
+        subtotal: 26.47,
+        tax: 8.50,
+        tip: 0,
+        total: 34.97,
+        per_person: []
+    },
+});

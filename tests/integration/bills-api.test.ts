@@ -2,7 +2,6 @@ import { NextRequest } from "next/server";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { GET, POST } from "../../src/app/api/bills/route";
 
-const mockInsert = vi.fn();
 const mockSelect = vi.fn();
 const mockEq = vi.fn();
 const mockOrder = vi.fn();

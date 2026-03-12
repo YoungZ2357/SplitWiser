@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import BillForm, { mapBillDetailToFormState } from "@/components/bill/BillForm";
 import type { BillDetail } from "@/types";
+import type { ParsedItem } from "@/components/receipt/ReceiptReview";
 
 // Mock next/navigation
 vi.mock("next/navigation", () => ({
@@ -17,19 +18,19 @@ vi.mock("react-day-picker", () => ({
 
 // Mock date-fns
 vi.mock("date-fns", () => ({
-    format: (date: Date, formatStr: string) => {
-        if (formatStr === "MMM d, yyyy") return "Mar 12, 2026";
-        if (formatStr === "yyyy-MM-dd") return "2026-03-12";
-        return date.toString();
+    format: (_date: Date, _formatStr: string) => {
+        if (_formatStr === "MMM d, yyyy") return "Mar 12, 2026";
+        if (_formatStr === "yyyy-MM-dd") return "2026-03-12";
+        return _date.toString();
     },
-    parse: (str: string, formatStr: string, date: Date) => new Date(str),
+    parse: (str: string, _formatStr: string, _date: Date) => new Date(str),
 }));
 
 // Mock subcomponents
 vi.mock("@/components/receipt/ReceiptUpload", () => ({
-    default: ({ previewUrl, isParsing, error }: any) => (
+    default: ({ previewUrl, isParsing, error }: { previewUrl?: string | null; isParsing?: boolean; error?: string | null }) => (
         <div data-testid="receipt-upload">
-            {previewUrl && <img src={previewUrl} alt="preview" />}
+            {previewUrl && (   <img src={previewUrl} alt="preview" /> )}
             {isParsing && <span>Parsing...</span>}
             {error && <span>{error}</span>}
         </div>
@@ -37,9 +38,9 @@ vi.mock("@/components/receipt/ReceiptUpload", () => ({
 }));
 
 vi.mock("@/components/receipt/ReceiptReview", () => ({
-    default: ({ imageUrl, parsedItems, isConfirmed, confirmedCount, onConfirm, onRetake }: any) => (
+    default: ({ imageUrl, parsedItems, isConfirmed: _isConfirmed, confirmedCount: _confirmedCount, onConfirm, onRetake }: { imageUrl: string; parsedItems: ParsedItem[]; isConfirmed?: boolean; confirmedCount?: number; onConfirm: (items: ParsedItem[]) => void; onRetake: () => void }) => (
         <div data-testid="receipt-review">
-            <img src={imageUrl} alt="receipt" />
+            { } <img src={imageUrl} alt="receipt" />
             <div>Items: {parsedItems?.length || 0}</div>
             <button onClick={() => onConfirm(parsedItems || [])}>Confirm</button>
             <button onClick={onRetake}>Retake</button>
@@ -48,9 +49,9 @@ vi.mock("@/components/receipt/ReceiptReview", () => ({
 }));
 
 vi.mock("@/components/receipt/ReceiptImage", () => ({
-    default: ({ src, alt }: any) => (
+    default: ({ src, alt }: { src: string; alt?: string }) => (
         <div data-testid="receipt-image">
-            <img src={src} alt={alt} />
+            { } <img src={src} alt={alt} />
         </div>
     ),
 }));
@@ -62,7 +63,7 @@ vi.mock("@/lib/format", () => ({
 
 // Mock cn utility
 vi.mock("@/lib/cn", () => ({
-    cn: (...classes: any[]) => classes.filter(Boolean).join(" "),
+    cn: (...classes: (string | false | undefined | null)[]) => classes.filter(Boolean).join(" "),
 }));
 
 // Mock fetch
