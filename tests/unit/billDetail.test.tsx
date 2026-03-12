@@ -223,4 +223,100 @@ describe("Bill Detail Page", () => {
         fireEvent.click(backLink);
         expect(mockPush).toHaveBeenCalledWith("/dashboard");
     });
+
+    it("navigates to edit page when Edit is clicked", async () => {
+        render(<BillDetailPage />);
+        await waitFor(() => {
+            expect(screen.getByText("Costco Run")).toBeInTheDocument();
+        });
+        const editButtons = screen.getAllByRole("button", { name: /Edit/i });
+        fireEvent.click(editButtons[0]);
+        expect(mockPush).toHaveBeenCalledWith("/bills/1/edit");
+    });
+
+    it("shows error when delete fails", async () => {
+        server.use(
+            http.delete("/api/bills/:id", () => {
+                return new HttpResponse(null, { status: 500 });
+            })
+        );
+
+        render(<BillDetailPage />);
+        await waitFor(() => {
+            expect(screen.getByText("Costco Run")).toBeInTheDocument();
+        });
+        const deleteButtons = screen.getAllByRole("button", { name: /Delete/i });
+        fireEvent.click(deleteButtons[0]);
+        await waitFor(() => {
+            expect(screen.getByText("Delete this bill?")).toBeInTheDocument();
+        });
+        fireEvent.click(screen.getByRole("button", { name: "Delete Bill" }));
+        await waitFor(() => {
+            expect(screen.getByRole("alert")).toHaveTextContent("Failed to delete bill");
+        });
+    });
+
+    it("shows network error on failed fetch", async () => {
+        server.use(
+            http.get("/api/bills/:id", () => {
+                return HttpResponse.error();
+            })
+        );
+        render(<BillDetailPage />);
+        await waitFor(() => {
+            expect(screen.getByRole("alert")).toHaveTextContent("Network error");
+        });
+    });
+
+    it("shows generic error for server error", async () => {
+        server.use(
+            http.get("/api/bills/:id", () => {
+                return new HttpResponse(null, { status: 500 });
+            })
+        );
+        render(<BillDetailPage />);
+        await waitFor(() => {
+            expect(screen.getByRole("alert")).toHaveTextContent("Failed to load bill");
+        });
+    });
+
+    it("shows network error when delete throws", async () => {
+        server.use(
+            http.delete("/api/bills/:id", () => {
+                return HttpResponse.error();
+            })
+        );
+
+        render(<BillDetailPage />);
+        await waitFor(() => {
+            expect(screen.getByText("Costco Run")).toBeInTheDocument();
+        });
+        const deleteButtons = screen.getAllByRole("button", { name: /Delete/i });
+        fireEvent.click(deleteButtons[0]);
+        await waitFor(() => {
+            expect(screen.getByText("Delete this bill?")).toBeInTheDocument();
+        });
+        fireEvent.click(screen.getByRole("button", { name: "Delete Bill" }));
+        await waitFor(() => {
+            expect(screen.getByRole("alert")).toHaveTextContent("Network error");
+        });
+    });
+
+    it("closes delete dialog on overlay click", async () => {
+        render(<BillDetailPage />);
+        await waitFor(() => {
+            expect(screen.getByText("Costco Run")).toBeInTheDocument();
+        });
+        const deleteButtons = screen.getAllByRole("button", { name: /Delete/i });
+        fireEvent.click(deleteButtons[0]);
+        await waitFor(() => {
+            expect(screen.getByText("Delete this bill?")).toBeInTheDocument();
+        });
+        // Click on the overlay (parent of dialog)
+        const dialog = screen.getByRole("dialog");
+        fireEvent.click(dialog.parentElement!);
+        await waitFor(() => {
+            expect(screen.queryByText("Delete this bill?")).not.toBeInTheDocument();
+        });
+    });
 });
