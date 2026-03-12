@@ -86,4 +86,4 @@ describe("Dashboard Page — empty state", () => {
         expect(await screen.findByText("No bills yet")).toBeInTheDocument();
         expect(screen.getByText(/Create your first bill/i)).toBeInTheDocument();
     });
-});
+});

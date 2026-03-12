@@ -21,9 +21,16 @@ export default defineConfig({
         ],
         coverage: {
             provider: "v8",
-            reporter: ["text", "html", "lcov"],
+            reporter: ["text", "html", "lcov", 'html', 'json-summary'],
             include: ["src/**/*.{ts,tsx}"],
-            exclude: ["src/**/icons.tsx", "src/**/*.d.ts"],
+            exclude: [
+                "src/**/icons.tsx",
+                "src/**/*.d.ts",
+                'src/mocks/**',
+                'src/types/**',
+                'src/lib/supabase/**',
+                'tests/**',
+            ],
             thresholds: {
                 global: {
                     statements: 80,
@@ -32,6 +39,7 @@ export default defineConfig({
                     lines: 80,
                 },
             },
+            reportsDirectory: './coverage',
         },
     },
 });
